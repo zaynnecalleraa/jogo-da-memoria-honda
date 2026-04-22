@@ -76,24 +76,24 @@ O jogo finaliza quando:
 
 ## 📁 Estrutura do Projeto
 
-projeto/  
-├── index.html  
-├── menu.html  
-├── jogo.html  
-├── criar-sala.html  
-├── entrar-sala.html  
-├── ranking-geral.html  
-├── ranking-sala.html  
-├── parabens.html  
-├── css/  
-│   └── style.css  
-├── js/  
-│   └── game.js  
+```
+projeto/
+├── index.html
+├── menu.html
+├── jogo.html
+├── criar-sala.html
+├── entrar-sala.html
+├── ranking-geral.html
+├── ranking-sala.html
+├── parabens.html
+├── css/
+│   └── style.css
+├── js/
+│   └── game.js
 ├── assets/
 │   └── cards/
-└── README.md  
-
----
+└── README.md
+``` 
 
 ## 🚀 Como rodar localmente
 
