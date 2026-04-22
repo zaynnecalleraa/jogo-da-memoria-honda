@@ -13,7 +13,7 @@ body { background: #071a0d; color: #fff; display: flex; align-items: flex-start;
 /* FRAME — 440x956 do Figma, JS escala pra caber na tela */
 .frame {
   position: relative;
-  width: 440px;
+  width: 450px;
   height: 956px;
   overflow: hidden;
   background: #fff;

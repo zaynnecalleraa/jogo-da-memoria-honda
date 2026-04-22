@@ -74,16 +74,20 @@ function selPlay(val) {
   document.getElementById('playNo').style.borderColor = !val ? '#04a025' : 'transparent';
 }
 
-function criar() {
+async function criar() {
   var name = document.getElementById('roomName').value.trim();
   if (!name) { document.getElementById('roomName').focus(); return; }
   var timeLeft = parseTimeFields(document.getElementById('timeMin'), document.getElementById('timeSec'));
+  var code = generateCode();
 
   saveState({
-    roomName: name, mode: mode, code: generateCode(),
+    roomName: name, mode: mode, code: code,
     timeLeft: timeLeft, timeTotal: timeLeft,
     host: true, willPlay: willPlay, playerName: ''
   });
+
+  // Cria sala no Firebase
+  await criarSalaFirebase(code, { roomName: name, mode: mode, timeTotal: timeLeft });
 
   if (willPlay) {
     showModal('Digite seu nome', 'Seu nome', function(playerName) {

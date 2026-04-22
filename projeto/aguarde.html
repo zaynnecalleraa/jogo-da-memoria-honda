@@ -34,8 +34,12 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="js/game.js"></script>
 <script>
-// Auto-start after 3 seconds (simulating host starting)
-setTimeout(() => { goTo('jogo.html'); }, 3000);
+// Escuta o Firebase até o anfitrião iniciar a partida
+var state = getState();
+var code = state.code || '';
+escutarInicioPartida(code, function() {
+  goTo('jogo.html');
+});
 </script>
 </body>
 </html>

@@ -79,9 +79,13 @@ function copyCode() {
   setTimeout(function() { document.getElementById('copyMsg').style.opacity = '0'; }, 2000);
 }
 
-function iniciar() {
-  if (willPlay) { goTo('jogo.html'); }
-  else { goTo('index.html'); }
+async function iniciar() {
+  if (willPlay) {
+    await iniciarPartidaFirebase(code);
+    goTo('jogo.html');
+  } else {
+    goTo('index.html');
+  }
 }
 </script>
 </body>

@@ -157,16 +157,57 @@ async function limparTudo() {
     try {
       await db.ref('rankingGeral').remove();
       await db.ref('rankingSala').remove();
+      await db.ref('salas').remove();
       console.log('✅ Firebase limpo!');
     } catch(e) { console.error(e); }
   }
-  // Limpa localStorage antigo
   var keys = Object.keys(localStorage);
   for (var i = 0; i < keys.length; i++) {
     if (keys[i].indexOf('honda') === 0) localStorage.removeItem(keys[i]);
   }
   console.log('✅ localStorage limpo!');
   alert('Dados apagados! Recarregue a página.');
+}
+
+// ============================================
+// GESTÃO DE SALAS — Firebase realtime
+// ============================================
+async function criarSalaFirebase(code, config) {
+  if (!firebaseReady) return;
+  try {
+    await db.ref('salas/' + code).set({
+      nome: config.roomName || '',
+      mode: config.mode || 'memory',
+      timeTotal: config.timeTotal || 120,
+      started: false,
+      createdAt: Date.now()
+    });
+  } catch(e) { console.error('Erro ao criar sala:', e); }
+}
+
+async function entrarSalaFirebase(code, playerName) {
+  if (!firebaseReady) return false;
+  try {
+    var snap = await db.ref('salas/' + code).once('value');
+    if (!snap.exists()) return false;
+    await db.ref('salas/' + code + '/jogadores').push({ name: playerName, joinedAt: Date.now() });
+    var salaData = snap.val();
+    saveState({ mode: salaData.mode || 'memory', timeLeft: salaData.timeTotal || 120, timeTotal: salaData.timeTotal || 120 });
+    return true;
+  } catch(e) { console.error('Erro ao entrar:', e); return false; }
+}
+
+async function iniciarPartidaFirebase(code) {
+  if (!firebaseReady) return;
+  try { await db.ref('salas/' + code + '/started').set(true); } catch(e) { console.error(e); }
+}
+
+function escutarInicioPartida(code, callback) {
+  if (!firebaseReady) { setTimeout(callback, 3000); return; }
+  var ref = db.ref('salas/' + code + '/started');
+  ref.on('value', function(snap) {
+    if (snap.val() === true) { ref.off(); callback(); }
+  });
 }
 
 // ============================================
@@ -351,48 +392,41 @@ function showConfirm(title, msg, callback) {
 
 // ============================================
 // RENDER RANKING
-// Sem medalhas quando não tem jogador naquela posição
+// SEMPRE mostra as 3 bases + medalhas + área branca
+// Texto fica vazio onde não tem jogador
 // ============================================
 function renderRanking(podiumId, listId, players) {
   var p = players.slice().sort(function(a, b) { return b.score - a.score; });
   var podEl = document.getElementById(podiumId);
   var listEl = document.getElementById(listId);
 
-  // VAZIO
-  if (p.length === 0) {
-    if (podEl) {
-      podEl.innerHTML = '<div style="width:375px;height:380px;left:32px;top:290px;position:absolute;background:rgba(255,255,255,0.08);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center">' +
-        '<div style="font-size:60px;margin-bottom:12px">🏆</div>' +
-        '<div style="color:white;font-size:20px;font-family:Poppins;font-weight:600;text-align:center;margin-bottom:8px">Nenhum jogador ainda</div>' +
-        '<div style="color:rgba(255,255,255,0.6);font-size:14px;font-family:Poppins;font-weight:400;text-align:center;line-height:1.4;padding:0 20px">Jogue uma partida para<br>aparecer no ranking!</div>' +
-        '</div>';
-    }
-    if (listEl) listEl.innerHTML = '';
-    return;
-  }
-
-  // PODIUM — só renderiza a base + medalha se o jogador EXISTE
   if (podEl) {
     var html = '';
 
-    // 1st — sempre existe se length > 0
+    // SEMPRE renderiza as 3 bases do pódio
+    html += '<div style="width:125px;height:174px;left:32px;top:342px;position:absolute;background:#ABABCF;border-top-left-radius:12px;border-top-right-radius:12px"></div>';
     html += '<div style="width:125px;height:206px;left:157px;top:310px;position:absolute;background:#F59F0A;border-top-left-radius:12px;border-top-right-radius:12px"></div>';
-    html += '<img style="width:143px;height:143px;left:148px;top:253px;position:absolute" src="assets/medal-gold.png" onerror="this.style.display=\'none\'">';
-    html += '<div style="left:160px;top:380px;position:absolute;text-align:center;color:white;font-size:16px;font-family:Poppins;font-weight:500;line-height:18px;width:120px">' + p[0].name + '</div>';
-    html += '<div style="left:160px;top:417px;position:absolute;text-align:center;color:white;font-size:14px;font-family:Poppins;font-weight:700;width:120px">' + p[0].score + ' pts</div>';
+    html += '<div style="width:125px;height:150px;left:282px;top:366px;position:absolute;background:#FA6B25;border-top-left-radius:12px;border-top-right-radius:12px"></div>';
 
-    // 2nd
+    // SEMPRE renderiza as 3 medalhas
+    html += '<img style="width:143px;height:143px;left:148px;top:253px;position:absolute" src="assets/medal-gold.png" onerror="this.style.display=\'none\'">';
+    html += '<img style="width:140px;height:140px;left:25px;top:289px;position:absolute" src="assets/medal-silver.png" onerror="this.style.display=\'none\'">';
+    html += '<img style="width:140px;height:140px;left:275px;top:310px;position:absolute" src="assets/medal-bronze.png" onerror="this.style.display=\'none\'">';
+
+    // 1st — texto só se existir
+    if (p[0]) {
+      html += '<div style="left:160px;top:380px;position:absolute;text-align:center;color:white;font-size:16px;font-family:Poppins;font-weight:500;line-height:18px;width:120px">' + p[0].name + '</div>';
+      html += '<div style="left:160px;top:417px;position:absolute;text-align:center;color:white;font-size:14px;font-family:Poppins;font-weight:700;width:120px">' + p[0].score + ' pts</div>';
+    }
+
+    // 2nd — texto só se existir
     if (p[1]) {
-      html += '<div style="width:125px;height:174px;left:32px;top:342px;position:absolute;background:#ABABCF;border-top-left-radius:12px;border-top-right-radius:12px"></div>';
-      html += '<img style="width:140px;height:140px;left:25px;top:289px;position:absolute" src="assets/medal-silver.png" onerror="this.style.display=\'none\'">';
       html += '<div style="left:35px;top:410px;position:absolute;text-align:center;color:white;font-size:16px;font-family:Poppins;font-weight:500;line-height:18px;width:120px">' + p[1].name + '</div>';
       html += '<div style="left:35px;top:449px;position:absolute;text-align:center;color:white;font-size:14px;font-family:Poppins;font-weight:700;width:120px">' + p[1].score + ' pts</div>';
     }
 
-    // 3rd
+    // 3rd — texto só se existir
     if (p[2]) {
-      html += '<div style="width:125px;height:150px;left:282px;top:366px;position:absolute;background:#FA6B25;border-top-left-radius:12px;border-top-right-radius:12px"></div>';
-      html += '<img style="width:140px;height:140px;left:275px;top:310px;position:absolute" src="assets/medal-bronze.png" onerror="this.style.display=\'none\'">';
       html += '<div style="left:285px;top:429px;position:absolute;text-align:center;color:white;font-size:16px;font-family:Poppins;font-weight:500;line-height:18px;width:120px">' + p[2].name + '</div>';
       html += '<div style="left:285px;top:466px;position:absolute;text-align:center;color:white;font-size:14px;font-family:Poppins;font-weight:700;width:120px">' + p[2].score + ' pts</div>';
     }
@@ -400,19 +434,22 @@ function renderRanking(podiumId, listId, players) {
     podEl.innerHTML = html;
   }
 
-  // LIST 4+
+  // SEMPRE renderiza a área branca da lista
   if (listEl) {
     var html2 = '';
-    var count = Math.min(p.length - 3, 5);
+    html2 += '<div style="width:375px;height:160px;left:32px;top:516px;position:absolute;background:white;border-bottom-right-radius:12px;border-bottom-left-radius:12px"></div>';
+
+    var count = Math.max(p.length - 3, 0);
     if (count > 0) {
-      var listHeight = count * 27 + 30;
-      html2 += '<div style="width:375px;height:' + listHeight + 'px;left:32px;top:516px;position:absolute;background:white;border-bottom-right-radius:12px;border-bottom-left-radius:12px"></div>';
       for (var i = 3; i < Math.min(p.length, 8); i++) {
         var y = 533 + (i - 3) * 27;
         html2 += '<div style="left:56px;top:' + (y+2) + 'px;position:absolute;color:#FF0000;font-size:20px;font-family:Poppins;font-weight:700">' + (i+1) + '</div>';
         html2 += '<div style="left:80px;top:' + y + 'px;position:absolute;color:#026F18;font-size:14px;font-family:Poppins;font-weight:500;line-height:25px">' + p[i].name + '</div>';
         html2 += '<div style="left:320px;top:' + (y+5) + 'px;position:absolute;color:#026F18;font-size:14px;font-family:Poppins;font-weight:700">' + p[i].score + ' pts</div>';
       }
+    } else {
+      // Sem jogadores 4+ — mensagem sutil
+      html2 += '<div style="left:32px;top:530px;position:absolute;width:375px;text-align:center;color:rgba(2,111,24,0.3);font-size:13px;font-family:Poppins;font-weight:400">Mais jogadores aparecerão aqui</div>';
     }
     listEl.innerHTML = html2;
   }

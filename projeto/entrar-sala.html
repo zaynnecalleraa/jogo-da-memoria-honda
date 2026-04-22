@@ -51,19 +51,18 @@ inputs.forEach((inp, i) => {
 });
 
 function entrar() {
-  let code = '';
-  inputs.forEach(i => code += i.value);
+  var code = '';
+  inputs.forEach(function(i) { code += i.value; });
   if (code.length < 5) return;
 
-  showModal('Digite seu nome', 'Seu nome', function(name) {
-    saveState({
-      code: code,
-      playerName: name,
-      host: false,
-      mode: 'quiz',
-      timeLeft: 120,
-      timeTotal: 120
-    });
+  showModal('Digite seu nome', 'Seu nome', async function(name) {
+    // Valida se a sala existe no Firebase
+    var ok = await entrarSalaFirebase(code, name);
+    if (!ok) {
+      showConfirm('Sala não encontrada', 'O código "' + code + '" não existe. Verifique e tente novamente.', function() {});
+      return;
+    }
+    saveState({ code: code, playerName: name, host: false });
     goTo('aguarde.html');
   });
 }
