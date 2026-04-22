@@ -48,25 +48,36 @@ for (var i = 0; i < code.length; i++) {
   boxesEl.appendChild(box);
 }
 
-// Players list from Firebase
-async function loadPlayers() {
-  var listEl = document.getElementById('playersList');
-  var salaPlayers = await getSalaRanking(code);
+// Registra o anfitrião como jogador se ele vai jogar
+if (willPlay && state.playerName) {
+  entrarSalaFirebase(code, state.playerName);
+}
 
-  if (salaPlayers.length === 0) {
-    listEl.innerHTML = '<div style="height:80px;display:flex;align-items:center;justify-content:center"><div style="color:rgba(2,111,24,0.35);font-size:14px;font-family:Poppins;font-weight:500">Aguardando jogadores...</div></div>';
-  } else {
+// Escuta jogadores em tempo real do nó salas/{code}/jogadores
+function escutarJogadores() {
+  var listEl = document.getElementById('playersList');
+  if (!firebaseReady) {
+    listEl.innerHTML = '<div style="height:80px;display:flex;align-items:center;justify-content:center"><div style="color:rgba(2,111,24,0.35);font-size:14px;font-family:Poppins;font-weight:500">Firebase não conectado</div></div>';
+    return;
+  }
+  db.ref('salas/' + code + '/jogadores').on('value', function(snap) {
+    var data = snap.val();
+    if (!data) {
+      listEl.innerHTML = '<div style="height:80px;display:flex;align-items:center;justify-content:center"><div style="color:rgba(2,111,24,0.35);font-size:14px;font-family:Poppins;font-weight:500">Aguardando jogadores...</div></div>';
+      return;
+    }
+    var jogadores = [];
+    Object.keys(data).forEach(function(k) { jogadores.push(data[k]); });
     var html = '';
-    for (var i = 0; i < salaPlayers.length; i++) {
+    for (var i = 0; i < jogadores.length; i++) {
       html += '<div style="width:284px;height:29px;background:white;border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 10px;margin-bottom:6px">' +
         '<span style="font-size:12px">👤</span>' +
-        '<span style="color:#026F18;font-size:14px;font-family:Poppins;font-weight:500;flex:1">' + salaPlayers[i].name + '</span>' +
-        '<span style="color:#026F18;font-size:12px;font-family:Poppins;font-weight:700">' + salaPlayers[i].score + ' pts</span></div>';
+        '<span style="color:#026F18;font-size:14px;font-family:Poppins;font-weight:500;flex:1">' + jogadores[i].name + '</span></div>';
     }
     listEl.innerHTML = html;
-  }
+  });
 }
-loadPlayers();
+escutarJogadores();
 
 if (!willPlay) {
   document.getElementById('btnIniciar').querySelector('span').textContent = 'VOLTAR AO INÍCIO';
