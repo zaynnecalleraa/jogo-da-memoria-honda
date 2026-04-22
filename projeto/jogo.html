@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=440,user-scalable=no">
+<title>Jogo — Semana da Segurança</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .card{position:absolute;width:106px;height:106px;cursor:pointer;perspective:800px}
+  .card-inner{width:100%;height:100%;position:relative;transition:transform .5s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
+  .card.flipped .card-inner,.card.matched .card-inner{transform:rotateY(180deg)}
+  .card.matched{pointer-events:none;opacity:.5}
+  .card-face{position:absolute;inset:0;border-radius:8px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+  .card-front{background:url('assets/card-back.png') center/cover no-repeat #026F18}
+  .card-back{transform:rotateY(180deg)}
+  .card-back img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+
+  /* Quiz overlay */
+  .quiz-overlay{position:absolute;inset:0;z-index:50;display:none;align-items:flex-start;justify-content:center;padding-top:160px}
+  .quiz-overlay.active{display:flex}
+  .quiz-bg{position:absolute;inset:0;background:rgba(255,255,255,0);z-index:0}
+
+  /* Feedback overlay */
+  .feedback-overlay{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,0.70);display:none;align-items:center;justify-content:center}
+  .feedback-overlay.active{display:flex}
+  .feedback-overlay img{width:153px;height:153px;animation:popIn .4s ease-out}
+  @keyframes popIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+
+  /* Combo */
+  .combo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;pointer-events:none;font-size:42px;font-weight:800;font-family:Poppins;color:#FFD700;text-shadow:0 0 20px rgba(255,215,0,.6),2px 2px 4px rgba(0,0,0,.5);opacity:0}
+  .combo.show{animation:comboPop .8s ease-out forwards}
+  @keyframes comboPop{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}30%{transform:translate(-50%,-50%) scale(1.3);opacity:1}100%{transform:translate(-50%,-60%) scale(1);opacity:0}}
+</style>
+</head>
+<body>
+<div class="frame" id="frame">
+  <img class="bg" src="assets/fundo.png" alt="">
+  <button class="btn-back" onclick="exitGame()"><img src="assets/icon-back.png" alt="Voltar"></button>
+  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+
+  <!-- Timer -->
+  <div style="width:98px;height:31px;left:94px;top:159px;position:absolute;background:white;border-radius:3px;display:flex;align-items:center;gap:4px;padding:0 8px">
+    <img src="assets/icon-clock.png" alt="" style="width:22px;height:22px" onerror="this.outerHTML='⏱️'">
+    <span id="timer" style="color:#026F18;font-size:20px;font-family:Poppins;font-weight:500;line-height:25px">02:00</span>
+  </div>
+
+  <!-- Pares -->
+  <div style="width:120px;height:31px;left:225px;top:159px;position:absolute;background:white;border-radius:3px;display:flex;align-items:center;padding:0 8px">
+    <span style="color:#026F18;font-size:20px;font-family:Poppins;font-weight:500;line-height:25px">Pares: <span id="pairs">0/8</span></span>
+  </div>
+
+  <!-- Texto instrucional -->
+  <div style="left:30px;top:205px;position:absolute;width:380px;text-align:center;color:white;font-size:11px;font-family:Poppins;font-weight:400;line-height:14px;opacity:0.85">
+    Acerte o maior número de pares no menor tempo possível para vencer! Encontre as combinações corretas com rapidez e atenção para conquistar a melhor pontuação.
+  </div>
+
+  <!-- Grid de cartas — 4x4 -->
+  <div id="grid"></div>
+
+  <!-- Combo display -->
+  <div class="combo" id="combo"></div>
+
+  <!-- Quiz overlay (Tela 8) -->
+  <div class="quiz-overlay" id="quizOverlay">
+    <div class="quiz-bg"></div>
+    <div id="quizCard" style="width:363px;background:white;border-radius:8px;padding:24px 20px;position:relative;z-index:1"></div>
+  </div>
+
+  <!-- Feedback overlay (Tela 9/10) -->
+  <div class="feedback-overlay" id="feedbackOverlay">
+    <img id="feedbackImg" src="" alt="">
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="js/game.js"></script>
+<script>
+const state = getState();
+const MODE = state.mode || 'memory';
+let timeLeft = state.timeLeft || 120;
+const timeTotal = state.timeTotal || 120;
+let matched = 0;
+let score = 0;
+let combo = 0;
+let flipped = [];
+let processing = false;
+let timerId;
+let cards = [];
+let quizCorrect = 0;
+
+// Grid positions from Figma — 4 columns, 4 rows
+const positions = [];
+const cols = [21, 119, 216, 312];
+const rows = [299, 416, 533, 650];
+for (const r of rows) for (const c of cols) positions.push({ x: c, y: r });
+
+// Build deck — shuffle aleatório a cada partida/jogador
+function buildDeck() {
+  const deck = [];
+  PAIRS.forEach(p => {
+    deck.push({ pairId: p.id, type: 'sit', img: getCardImg(p.id, 'sit'), quiz: p.quiz });
+    deck.push({ pairId: p.id, type: 'sol', img: getCardImg(p.id, 'sol'), quiz: p.quiz });
+  });
+  return shuffleDeck(deck);
+}
+
+function renderGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  cards.forEach((card, idx) => {
+    const pos = positions[idx];
+    const el = document.createElement('div');
+    el.className = 'card';
+    el.style.left = pos.x + 'px';
+    el.style.top = pos.y + 'px';
+    el.dataset.idx = idx;
+    el.innerHTML = `
+      <div class="card-inner">
+        <div class="card-face card-front"></div>
+        <div class="card-face card-back"><img src="${card.img}" alt="" onerror="this.style.background='#1a5c2e'"></div>
+      </div>`;
+    el.addEventListener('click', () => flip(idx));
+    grid.appendChild(el);
+  });
+}
+
+function flip(idx) {
+  if (processing) return;
+  const el = document.querySelectorAll('.card')[idx];
+  if (el.classList.contains('flipped') || el.classList.contains('matched')) return;
+  if (flipped.length >= 2) return;
+  el.classList.add('flipped');
+  flipped.push(idx);
+  if (flipped.length === 2) { processing = true; setTimeout(checkMatch, 800); }
+}
+
+function checkMatch() {
+  const [a, b] = flipped;
+  const c1 = cards[a], c2 = cards[b];
+  const els = document.querySelectorAll('.card');
+
+  if (c1.pairId === c2.pairId && c1.type !== c2.type) {
+    els[a].classList.add('matched');
+    els[b].classList.add('matched');
+    matched++;
+    combo++;
+    const cb = Math.min(combo * 25, 100);
+    const tb = Math.floor(timeLeft / 10) * 5;
+    score += 100 + cb + tb;
+    if (combo >= 2) showCombo(combo);
+    updateUI();
+    flipped = [];
+    processing = false;
+
+    if (MODE === 'quiz') {
+      setTimeout(() => showQuiz(c1.pairId), 400);
+    } else {
+      showFeedback(true);
+      checkWin();
+    }
+  } else {
+    combo = 0;
+    setTimeout(() => {
+      els[a].classList.remove('flipped');
+      els[b].classList.remove('flipped');
+      flipped = [];
+      processing = false;
+    }, 600);
+  }
+}
+
+function checkWin() {
+  if (matched >= 8) setTimeout(endGame, 1200);
+}
+
+function showCombo(c) {
+  const el = document.getElementById('combo');
+  el.textContent = `COMBO x${c}!`;
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1000);
+}
+
+function showFeedback(ok) {
+  const ov = document.getElementById('feedbackOverlay');
+  const img = document.getElementById('feedbackImg');
+  img.src = ok ? 'assets/icon-correct.png' : 'assets/icon-wrong.png';
+  img.onerror = function () {
+    this.outerHTML = `<div style="font-size:100px">${ok ? '✅' : '❌'}</div>`;
+  };
+  ov.classList.add('active');
+  setTimeout(() => ov.classList.remove('active'), 1200);
+}
+
+// QUIZ (Tela 8)
+function showQuiz(pairId) {
+  const pair = PAIRS.find(p => p.id === pairId);
+  if (!pair) return;
+  clearInterval(timerId);
+
+  const card = document.getElementById('quizCard');
+  card.innerHTML = `
+    <div style="text-align:center;color:#026F18;font-size:24px;font-family:Poppins;font-weight:700;line-height:25px;margin-bottom:16px">PAR ENCONTRADO</div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-bottom:16px">
+      <img src="${getCardImg(pairId, 'sit')}" style="width:106px;height:106px;border-radius:8px;object-fit:cover" onerror="this.style.background='#ccc'">
+      <img src="${getCardImg(pairId, 'sol')}" style="width:106px;height:106px;border-radius:8px;object-fit:cover" onerror="this.style.background='#ccc'">
+    </div>
+    <div style="width:296px;text-align:center;color:#026F18;font-size:16px;font-family:Poppins;font-weight:500;line-height:15px;margin:0 auto 16px">${pair.quiz.q}</div>
+    <div id="quizOpts"></div>
+    <div id="quizExp" style="background:#f0f7f1;border-radius:6px;padding:12px;margin-top:8px;color:#026F18;font-size:13px;line-height:1.4;display:none">${pair.quiz.exp}</div>
+  `;
+
+  const optsEl = document.getElementById('quizOpts');
+  pair.quiz.opts.forEach((o, i) => {
+    const btn = document.createElement('div');
+    btn.style.cssText = 'width:293px;height:35px;background:#026F18;border-radius:3px;margin:0 auto 10px;display:flex;align-items:center;padding:0 16px;cursor:pointer;color:white;font-size:16px;font-family:Poppins;font-weight:500;line-height:15px';
+    btn.textContent = `${String.fromCharCode(65 + i)}) ${o}`;
+    btn.addEventListener('click', () => answerQuiz(i, pair.quiz.c, btn));
+    optsEl.appendChild(btn);
+  });
+
+  document.getElementById('quizOverlay').classList.add('active');
+}
+
+function answerQuiz(sel, correct, btn) {
+  const all = document.querySelectorAll('#quizOpts > div');
+  all.forEach(b => { b.style.pointerEvents = 'none'; b.style.opacity = '0.6'; });
+
+  if (sel === correct) {
+    btn.style.background = '#04a025';
+    btn.style.opacity = '1';
+    score += 150;
+    quizCorrect++;
+  } else {
+    btn.style.background = '#FF0000';
+    btn.style.opacity = '1';
+    all[correct].style.background = '#04a025';
+    all[correct].style.opacity = '1';
+  }
+
+  document.getElementById('quizExp').style.display = 'block';
+
+  setTimeout(() => {
+    document.getElementById('quizOverlay').classList.remove('active');
+    showFeedback(sel === correct);
+    startTimer();
+    checkWin();
+  }, 2500);
+}
+
+// TIMER
+function startTimer() {
+  clearInterval(timerId);
+  updateTimerDisplay();
+  timerId = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) { clearInterval(timerId); endGame(); }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+  document.getElementById('timer').textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+function updateUI() {
+  document.getElementById('pairs').textContent = `${matched}/8`;
+}
+
+// END GAME — salva ranking REAL (sala + geral)
+async function endGame() {
+  clearInterval(timerId);
+  const used = timeTotal - timeLeft;
+  const m = Math.floor(used / 60), s = used % 60;
+  const tStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  const playerName = state.playerName || 'Jogador';
+  const roomCode = state.code || 'LOCAL';
+
+  // Salva no ranking da sala (dados reais)
+  const salaPlayers = await addToSalaRanking(roomCode, playerName, score);
+
+  // Salva no ranking geral (dados reais)
+  await addToGeralRanking(playerName, score);
+
+  // Calcula posição real na sala
+  const pos = salaPlayers.findIndex(p => p.name === playerName && p.score === score) + 1;
+
+  saveState({
+    finalPos: pos,
+    finalScore: score,
+    finalTime: tStr,
+    finalPairs: `${matched}/8`,
+    finalRoomCode: roomCode
+  });
+
+  goTo('parabens.html');
+}
+
+function exitGame() {
+  showConfirm('Sair da partida?', 'Seu progresso será perdido.', function() {
+    clearInterval(timerId);
+    goTo('index.html');
+  });
+}
+
+// INIT
+cards = buildDeck();
+renderGrid();
+updateUI();
+startTimer();
+</script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=440,user-scalable=no">
+<title>Menu — Semana da Segurança</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="frame">
+  <!-- Fundo -->
+  <img class="bg" src="assets/fundo.png" alt="">
+
+  <!-- Botão Voltar -->
+  <button class="btn-back" onclick="goTo('index.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
+
+  <!-- Logo Honda -->
+  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+
+  <!-- Título -->
+  <div style="left:59px;top:200px;position:absolute;text-align:center;justify-content:center;display:flex;flex-direction:column;color:white;font-size:32px;font-family:Poppins;font-weight:600;line-height:40px">Escolha uma opção<br>para continuar</div>
+
+  <!-- Card Criar Sala -->
+  <div style="width:285px;height:158px;left:77px;top:334px;position:absolute;background:white;border-radius:12px;cursor:pointer;display:flex;align-items:center" class="clickable" onclick="goTo('criar-sala.html')">
+    <img style="width:78px;height:78px;left:22px;top:41px;position:absolute" src="assets/icon-criar.png" alt="">
+    <div style="left:125px;top:55px;position:absolute;text-align:center;justify-content:center;display:flex;flex-direction:column;color:#026F18;font-size:24px;font-family:Poppins;font-weight:500;line-height:25px">Criar<br>uma sala</div>
+  </div>
+
+  <!-- Card Entrar Sala -->
+  <div style="width:285px;height:158px;left:77px;top:524px;position:absolute;background:white;border-radius:12px;cursor:pointer;display:flex;align-items:center" class="clickable" onclick="goTo('entrar-sala.html')">
+    <img style="width:88px;height:88px;left:22px;top:35px;position:absolute" src="assets/icon-entrar.png" alt="">
+    <div style="left:125px;top:52px;position:absolute;text-align:center;justify-content:center;display:flex;flex-direction:column;color:#026F18;font-size:24px;font-family:Poppins;font-weight:500;line-height:25px">Entrar em<br>uma sala</div>
+  </div>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>

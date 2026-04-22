@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=440,user-scalable=no">
+<title>Aguarde — Semana da Segurança</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .dot { width:10px;height:10px;background:#fff;border-radius:50%;display:inline-block;margin:0 4px;animation:dotPulse 1.4s infinite ease-in-out; }
+  .dot:nth-child(2){animation-delay:.2s}
+  .dot:nth-child(3){animation-delay:.4s}
+  @keyframes dotPulse{0%,80%,100%{opacity:.3;transform:scale(.8)}40%{opacity:1;transform:scale(1.2)}}
+</style>
+</head>
+<body>
+<div class="frame">
+  <img class="bg" src="assets/fundo.png" alt="">
+  <button class="btn-back" onclick="goTo('menu.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
+  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+
+  <!-- Título -->
+  <div style="left:136px;top:220px;position:absolute;text-align:center;color:white;font-size:32px;font-family:Poppins;font-weight:600;line-height:40px">Aguarde...</div>
+
+  <!-- Subtítulo -->
+  <div style="left:109px;top:274px;position:absolute;text-align:center;color:white;font-size:22px;font-family:Poppins;font-weight:400;line-height:25px">Em breve o anfitrião<br>iniciará a partida.</div>
+
+  <!-- Dots animation -->
+  <div style="left:195px;top:350px;position:absolute">
+    <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="js/game.js"></script>
+<script>
+// Auto-start after 3 seconds (simulating host starting)
+setTimeout(() => { goTo('jogo.html'); }, 3000);
+</script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+/* ============================================
+   SEMANA DA SEGURANÇA — HONDA
+   CSS Compartilhado (style.css)
+   Frame Figma: 440 x 956 px
+   ============================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Poppins', sans-serif; }
+body { background: #071a0d; color: #fff; display: flex; align-items: flex-start; justify-content: center; }
+
+/* FRAME — 440x956 do Figma, JS escala pra caber na tela */
+.frame {
+  position: relative;
+  width: 440px;
+  height: 956px;
+  overflow: hidden;
+  background: #fff;
+  transform-origin: top center;
+}
+
+/* FUNDO — imagem de fundo (fundo.png) */
+.bg {
+  position: absolute;
+  width: 637px;
+  height: 956px;
+  left: -142px;
+  top: 0px;
+  object-fit: cover;
+}
+
+/* LOGO HONDA — componente SVG vermelho */
+.logo-honda {
+  position: absolute;
+  width: 55px;
+  height: 56px;
+  left: 192px;
+  top: 61px;
+  overflow: hidden;
+  z-index: 2;
+}
+.logo-honda img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* BOTÃO VOLTAR */
+.btn-back {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  left: 17px;
+  top: 19px;
+  z-index: 10;
+  cursor: pointer;
+  border: none;
+  background: none;
+  padding: 0;
+}
+.btn-back img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* UTILIDADES */
+.clickable { cursor: pointer; }
+.clickable:active { opacity: 0.85; transform: scale(0.97); }
+a { text-decoration: none; color: inherit; }

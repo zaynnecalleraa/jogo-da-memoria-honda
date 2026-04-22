@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=440,user-scalable=no">
+<title>Parabéns — Semana da Segurança</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  @keyframes trophyIn{from{transform:scale(0) rotate(-15deg);opacity:0}60%{transform:scale(1.1) rotate(3deg)}to{transform:scale(1) rotate(0);opacity:1}}
+</style>
+</head>
+<body>
+<div class="frame">
+  <img class="bg" src="assets/fundo.png" alt="">
+  <button class="btn-back" onclick="goTo('index.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
+  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+
+  <!-- Título -->
+  <div style="left:130px;top:220px;position:absolute;text-align:center;color:white;font-size:32px;font-family:Poppins;font-weight:600;line-height:40px">PARABÉNS!</div>
+
+  <!-- Subtítulo -->
+  <div style="left:67px;top:274px;position:absolute;text-align:center;color:white;font-size:22px;font-family:Poppins;font-weight:400;line-height:25px">Você é fera em segurança.<br>Continue praticando!</div>
+
+  <!-- Troféu -->
+  <img src="assets/trophy.png" alt="Troféu" style="width:307px;height:307px;left:63px;top:294px;position:absolute;animation:trophyIn .7s ease-out" onerror="this.outerHTML='<div style=\\'position:absolute;left:160px;top:350px;font-size:120px\\'>🏆</div>'">
+
+  <!-- Posição -->
+  <div style="width:352px;height:43px;left:38px;top:587px;position:absolute;background:white;border-radius:7px;display:flex;align-items:center;padding:0 16px">
+    <span style="color:#026F18;font-size:24px;font-family:Poppins;font-weight:700;line-height:15px">Posição:</span>
+    <span id="fPos" style="color:#026F18;font-size:23px;font-family:Poppins;font-weight:500;line-height:25px;margin-left:8px">5º Lugar</span>
+  </div>
+
+  <!-- Pontuação -->
+  <div style="width:352px;height:43px;left:38px;top:638px;position:absolute;background:white;border-radius:7px;display:flex;align-items:center;padding:0 16px">
+    <span style="color:#026F18;font-size:24px;font-family:Poppins;font-weight:700;line-height:15px">Pontuação:</span>
+    <span id="fScore" style="color:#026F18;font-size:23px;font-family:Poppins;font-weight:500;line-height:25px;margin-left:8px">190 pts</span>
+  </div>
+
+  <!-- Tempo -->
+  <div style="width:352px;height:43px;left:38px;top:689px;position:absolute;background:white;border-radius:7px;display:flex;align-items:center;padding:0 16px">
+    <span style="color:#026F18;font-size:24px;font-family:Poppins;font-weight:700;line-height:15px">Tempo:</span>
+    <span id="fTime" style="color:#026F18;font-size:23px;font-family:Poppins;font-weight:500;line-height:25px;margin-left:8px">01:30</span>
+  </div>
+
+  <!-- Acertos -->
+  <div style="width:352px;height:43px;left:38px;top:740px;position:absolute;background:white;border-radius:7px;display:flex;align-items:center;padding:0 16px">
+    <span style="color:#026F18;font-size:24px;font-family:Poppins;font-weight:700;line-height:15px">Acertos:</span>
+    <span id="fPairs" style="color:#026F18;font-size:23px;font-family:Poppins;font-weight:500;line-height:25px;margin-left:8px">6/8</span>
+  </div>
+
+  <!-- Botão Ver Ranking da Sala -->
+  <div style="width:250px;height:42px;left:95px;top:810px;position:absolute;background:#FF0000;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center" class="clickable" onclick="goTo('ranking-sala.html')">
+    <span style="color:white;font-size:18px;font-family:Poppins;font-weight:700">VER RANKING DA SALA</span>
+  </div>
+
+  <!-- Botão Jogar Novamente -->
+  <div style="width:250px;height:42px;left:95px;top:862px;position:absolute;border-radius:5px;border:3px solid #FF0000;cursor:pointer;display:flex;align-items:center;justify-content:center" class="clickable" onclick="goTo('index.html')">
+    <span style="color:#FF0000;font-size:18px;font-family:Poppins;font-weight:700">JOGAR NOVAMENTE</span>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="js/game.js"></script>
+<script>
+const state = getState();
+document.getElementById('fPos').textContent = (state.finalPos || 5) + 'º Lugar';
+document.getElementById('fScore').textContent = (state.finalScore || 190) + ' pts';
+document.getElementById('fTime').textContent = state.finalTime || '01:30';
+document.getElementById('fPairs').textContent = state.finalPairs || '6/8';
+</script>
+</body>
+</html>
