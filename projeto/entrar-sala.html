@@ -58,6 +58,10 @@ function entrar() {
   showModal('Digite seu nome', 'Seu nome', async function(name) {
     // Valida se a sala existe no Firebase
     var ok = await entrarSalaFirebase(code, name);
+    if (ok === 'lotada') {
+      showConfirm('Sala lotada!', 'O número máximo de jogadores já foi atingido.', function() {});
+      return;
+    }
     if (!ok) {
       showConfirm('Sala não encontrada', 'O código "' + code + '" não existe. Verifique e tente novamente.', function() {});
       return;

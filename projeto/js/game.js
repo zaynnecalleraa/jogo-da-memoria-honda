@@ -186,6 +186,8 @@ async function criarSalaFirebase(code, config) {
       nome: config.roomName || '',
       mode: config.mode || 'memory',
       timeTotal: config.timeTotal || 120,
+      maxPlayers: config.maxPlayers || null,
+      tvMode: config.tvMode || false,
       started: false,
       createdAt: Date.now()
     });
@@ -197,9 +199,25 @@ async function entrarSalaFirebase(code, playerName) {
   try {
     var snap = await db.ref('salas/' + code).once('value');
     if (!snap.exists()) return false;
-    await db.ref('salas/' + code + '/jogadores').push({ name: playerName, joinedAt: Date.now() });
     var salaData = snap.val();
-    saveState({ mode: salaData.mode || 'memory', timeLeft: salaData.timeTotal || 120, timeTotal: salaData.timeTotal || 120 });
+
+    var maxPlayers = salaData.maxPlayers || null;
+    if (maxPlayers) {
+      var jogSnap = await db.ref('salas/' + code + '/jogadores').once('value');
+      var count = jogSnap.exists() ? Object.keys(jogSnap.val() || {}).length : 0;
+      if (count >= maxPlayers) return 'lotada';
+    }
+
+    var ref = await db.ref('salas/' + code + '/jogadores').push({
+      name: playerName, joinedAt: Date.now(), played: false, score: null
+    });
+    saveState({
+      mode: salaData.mode || 'memory',
+      timeLeft: salaData.timeTotal || 120,
+      timeTotal: salaData.timeTotal || 120,
+      tvMode: salaData.tvMode || false,
+      playerKey: ref.key
+    });
     return true;
   } catch(e) { console.error('Erro ao entrar:', e); return false; }
 }
@@ -214,6 +232,27 @@ function escutarInicioPartida(code, callback) {
   var ref = db.ref('salas/' + code + '/started');
   ref.on('value', function(snap) {
     if (snap.val() === true) { ref.off(); callback(); }
+  });
+}
+
+async function setCurrentTVPlayer(code, playerName) {
+  if (!firebaseReady) return;
+  try { await db.ref('salas/' + code + '/currentPlayer').set(playerName); }
+  catch(e) { console.error(e); }
+}
+
+async function markPlayerPlayed(code, playerKey, score) {
+  if (!firebaseReady || !playerKey) return;
+  try {
+    await db.ref('salas/' + code + '/jogadores/' + playerKey).update({ played: true, score: score });
+  } catch(e) { console.error(e); }
+}
+
+function escutarVezTV(code, playerName, callback) {
+  if (!firebaseReady) return;
+  var ref = db.ref('salas/' + code + '/currentPlayer');
+  ref.on('value', function(snap) {
+    if (snap.val() === playerName) { ref.off(); callback(); }
   });
 }
 

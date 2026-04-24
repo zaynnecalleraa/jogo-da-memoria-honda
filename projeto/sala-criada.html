@@ -38,6 +38,7 @@
 var state = getState();
 var code = state.code || 'XXXXX';
 var willPlay = state.willPlay !== false;
+var tvMode = state.tvMode || false;
 
 // Render code boxes
 var boxesEl = document.getElementById('codeBoxes');
@@ -79,7 +80,9 @@ function escutarJogadores() {
 }
 escutarJogadores();
 
-if (!willPlay) {
+if (tvMode) {
+  document.getElementById('btnIniciar').querySelector('span').textContent = 'MODO TV';
+} else if (!willPlay) {
   document.getElementById('btnIniciar').querySelector('span').textContent = 'VOLTAR AO INÍCIO';
   document.getElementById('btnIniciar').onclick = function() { goTo('index.html'); };
 }
@@ -91,7 +94,10 @@ function copyCode() {
 }
 
 async function iniciar() {
-  if (willPlay) {
+  if (tvMode) {
+    await iniciarPartidaFirebase(code);
+    goTo('modo-tv.html');
+  } else if (willPlay) {
     await iniciarPartidaFirebase(code);
     goTo('jogo.html');
   } else {

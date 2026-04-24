@@ -19,13 +19,13 @@
   <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
 
   <!-- Título -->
-  <div style="left:136px;top:220px;position:absolute;text-align:center;color:white;font-size:32px;font-family:Poppins;font-weight:600;line-height:40px">Aguarde...</div>
+  <div style="left:0;top:220px;position:absolute;width:440px;text-align:center;color:white;font-size:32px;font-family:Poppins;font-weight:600;line-height:40px">Aguarde...</div>
 
   <!-- Subtítulo -->
-  <div style="left:109px;top:274px;position:absolute;text-align:center;color:white;font-size:22px;font-family:Poppins;font-weight:400;line-height:25px">Em breve o anfitrião<br>iniciará a partida.</div>
+  <div id="subtitle" style="left:0;top:274px;position:absolute;width:440px;text-align:center;color:white;font-size:22px;font-family:Poppins;font-weight:400;line-height:25px">Em breve o anfitrião<br>iniciará a partida.</div>
 
   <!-- Dots animation -->
-  <div style="left:195px;top:350px;position:absolute">
+  <div style="left:0;top:350px;position:absolute;width:440px;text-align:center">
     <span class="dot"></span><span class="dot"></span><span class="dot"></span>
   </div>
 </div>
@@ -34,11 +34,23 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="js/game.js"></script>
 <script>
-// Escuta o Firebase até o anfitrião iniciar a partida
 var state = getState();
 var code = state.code || '';
+var tvMode = state.tvMode || false;
+var myMode = state.mode || 'memory';
+var myName = state.playerName || '';
+
+function irParaJogo() {
+  goTo(myMode === 'quizonly' ? 'quiz.html' : 'jogo.html');
+}
+
 escutarInicioPartida(code, function() {
-  goTo('jogo.html');
+  if (tvMode) {
+    document.getElementById('subtitle').innerHTML = 'Aguardando<br>a sua vez...';
+    escutarVezTV(code, myName, irParaJogo);
+  } else {
+    irParaJogo();
+  }
 });
 </script>
 </body>

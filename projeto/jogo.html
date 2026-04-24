@@ -278,15 +278,16 @@ async function endGame() {
   const tStr = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   const playerName = state.playerName || 'Jogador';
   const roomCode = state.code || 'LOCAL';
+  const tvModeOn = state.tvMode || false;
+  const playerKey = state.playerKey || null;
 
-  // Salva no ranking da sala (dados reais)
   const salaPlayers = await addToSalaRanking(roomCode, playerName, score);
-
-  // Salva no ranking geral (dados reais)
   await addToGeralRanking(playerName, score);
-
-  // Calcula posição real na sala
   const pos = salaPlayers.findIndex(p => p.name === playerName && p.score === score) + 1;
+
+  if (tvModeOn && playerKey) {
+    await markPlayerPlayed(roomCode, playerKey, score);
+  }
 
   saveState({
     finalPos: pos,
@@ -296,7 +297,7 @@ async function endGame() {
     finalRoomCode: roomCode
   });
 
-  goTo('parabens.html');
+  goTo(tvModeOn ? 'modo-tv.html' : 'parabens.html');
 }
 
 function exitGame() {
