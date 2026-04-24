@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=440,user-scalable=no">
+<title>Modo TV — Semana da Segurança</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div class="frame">
+  <img class="bg" src="assets/fundo.png" alt="">
+  <button class="btn-back" onclick="goTo('index.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
+  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+
+  <!-- Título -->
+  <div style="left:0;top:168px;position:absolute;width:440px;text-align:center;color:white;font-size:32px;font-family:Poppins;font-weight:600;line-height:40px">Modo TV</div>
+
+  <!-- Código da sala -->
+  <div style="left:38px;top:214px;position:absolute;color:rgba(255,255,255,0.8);font-size:15px;font-family:Poppins;font-weight:400">
+    Sala: <span id="codeDisplay" style="font-weight:700;letter-spacing:2px"></span>
+  </div>
+
+  <!-- Card lista de jogadores -->
+  <div style="width:376px;height:420px;left:32px;top:242px;position:absolute;background:white;border-radius:12px;overflow:hidden">
+    <div style="padding:10px 16px;border-bottom:2px solid #f0f0f0;color:#026F18;font-size:16px;font-family:Poppins;font-weight:600">Jogadores</div>
+    <div id="playerList" style="overflow-y:auto;height:378px;padding:8px 10px"></div>
+  </div>
+
+  <!-- Dica para host (selecionar jogador) -->
+  <div id="hostHint" style="left:32px;top:670px;position:absolute;width:376px;text-align:center;color:rgba(255,255,255,0.65);font-size:13px;font-family:Poppins;font-weight:400">Toque em um jogador para selecioná-lo</div>
+
+  <!-- Botão INICIAR VEZ (host only) -->
+  <div id="btnIniciarVez" style="width:240px;height:46px;left:100px;top:693px;position:absolute;background:#FF0000;border-radius:5px;cursor:pointer;display:none;align-items:center;justify-content:center;opacity:0.35" class="clickable" onclick="iniciarVez()">
+    <span style="color:white;font-size:18px;font-family:Poppins;font-weight:700">INICIAR VEZ</span>
+  </div>
+
+  <!-- Mensagem para jogador após terminar -->
+  <div id="playerDoneBox" style="left:32px;top:672px;position:absolute;width:376px;display:none;text-align:center">
+    <div style="color:white;font-size:18px;font-family:Poppins;font-weight:500;line-height:26px">Você finalizou!</div>
+    <div id="playerDoneScore" style="color:#FFD700;font-size:30px;font-family:Poppins;font-weight:700"></div>
+  </div>
+
+  <!-- Botão VER RANKING (quando todos jogaram) -->
+  <div id="btnVerRanking" style="width:250px;height:42px;left:95px;top:760px;position:absolute;background:#FF0000;border-radius:5px;cursor:pointer;display:none;align-items:center;justify-content:center" class="clickable" onclick="goTo('ranking-sala.html')">
+    <span style="color:white;font-size:17px;font-family:Poppins;font-weight:700">VER RANKING</span>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="js/game.js"></script>
+<script>
+var state = getState();
+var code = state.code || '';
+var isHost = state.host || false;
+var myName = state.playerName || '';
+var justPlayed = !isHost && state.finalScore !== undefined;
+
+var selectedPlayerKey = null;
+var allPlayers = {};
+var currentPlayingName = null;
+
+document.getElementById('codeDisplay').textContent = code;
+
+// Mostra pontuação para o jogador que acabou de jogar
+if (justPlayed) {
+  document.getElementById('playerDoneBox').style.display = 'block';
+  document.getElementById('playerDoneScore').textContent = (state.finalScore || 0) + ' pts';
+}
+
+// Controles visíveis apenas para o host
+if (isHost) {
+  document.getElementById('btnIniciarVez').style.display = 'flex';
+  document.getElementById('hostHint').style.display = 'block';
+} else {
+  document.getElementById('hostHint').style.display = 'none';
+}
+
+if (firebaseReady) {
+  // Escuta quem está jogando no momento
+  db.ref('salas/' + code + '/currentPlayer').on('value', function(snap) {
+    currentPlayingName = snap.val() || null;
+    renderPlayerList();
+  });
+
+  // Escuta lista de jogadores em tempo real
+  db.ref('salas/' + code + '/jogadores').on('value', function(snap) {
+    allPlayers = snap.val() || {};
+    renderPlayerList();
+    checkAllDone();
+  });
+}
+
+function renderPlayerList() {
+  var listEl = document.getElementById('playerList');
+  var keys = Object.keys(allPlayers);
+
+  if (keys.length === 0) {
+    listEl.innerHTML = '<div style="text-align:center;color:rgba(2,111,24,0.4);font-size:14px;font-family:Poppins;padding:24px">Nenhum jogador encontrado</div>';
+    return;
+  }
+
+  var html = '';
+  keys.forEach(function(k) {
+    var p = allPlayers[k];
+    var isDone = p.played;
+    var isPlaying = (!isDone && currentPlayingName === p.name);
+    var isSelected = (selectedPlayerKey === k);
+
+    var bg = isDone ? '#e8f5e9' : isPlaying ? '#fff8e1' : '#f7f7f7';
+    var border = isSelected && isHost ? '2px solid #04a025' : '1px solid #e8e8e8';
+    var icon = isDone ? '✅' : isPlaying ? '🎮' : '⏳';
+    var rightText = isDone ? ((p.score || 0) + ' pts') : (isPlaying ? 'Em jogo...' : 'Aguardando');
+    var rightColor = isDone ? '#026F18' : isPlaying ? '#b56a00' : '#aaa';
+    var canSelect = isHost && !isDone && !isPlaying;
+    var cursor = canSelect ? 'pointer' : 'default';
+
+    html += '<div style="background:' + bg + ';border:' + border + ';border-radius:6px;margin-bottom:6px;height:48px;display:flex;align-items:center;padding:0 12px;cursor:' + cursor + '"' +
+      (canSelect ? ' onclick="selectPlayer(\'' + k + '\')"' : '') + '>' +
+      '<span style="font-size:18px;margin-right:8px;flex-shrink:0">' + icon + '</span>' +
+      '<span style="flex:1;color:#026F18;font-size:15px;font-family:Poppins;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + escHtml(p.name) + '</span>' +
+      '<span style="color:' + rightColor + ';font-size:13px;font-family:Poppins;font-weight:600;flex-shrink:0">' + rightText + '</span>' +
+      '</div>';
+  });
+
+  listEl.innerHTML = html;
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function selectPlayer(key) {
+  if (!isHost) return;
+  var p = allPlayers[key];
+  if (!p || p.played || p.name === currentPlayingName) return;
+  selectedPlayerKey = key;
+  renderPlayerList();
+  var btn = document.getElementById('btnIniciarVez');
+  btn.style.opacity = '1';
+}
+
+async function iniciarVez() {
+  if (!selectedPlayerKey || !isHost) return;
+  var p = allPlayers[selectedPlayerKey];
+  if (!p) return;
+  await setCurrentTVPlayer(code, p.name);
+  selectedPlayerKey = null;
+  document.getElementById('btnIniciarVez').style.opacity = '0.35';
+}
+
+function checkAllDone() {
+  var keys = Object.keys(allPlayers);
+  if (keys.length === 0) return;
+  var allDone = keys.every(function(k) { return allPlayers[k].played; });
+  if (allDone) {
+    document.getElementById('btnVerRanking').style.display = 'flex';
+    if (isHost) {
+      document.getElementById('btnIniciarVez').style.display = 'none';
+      document.getElementById('hostHint').style.display = 'none';
+    }
+  }
+}
+</script>
+</body>
+</html>

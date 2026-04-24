@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=440,user-scalable=no">
+<title>Quiz — Semana da Segurança</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .feedback-overlay{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,0.70);display:none;align-items:center;justify-content:center}
+  .feedback-overlay.active{display:flex}
+  .feedback-overlay img{width:153px;height:153px;animation:popIn .4s ease-out}
+  @keyframes popIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+</style>
+</head>
+<body>
+<div class="frame">
+  <img class="bg" src="assets/fundo.png" alt="">
+  <button class="btn-back" onclick="exitQuiz()"><img src="assets/icon-back.png" alt="Voltar"></button>
+  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+
+  <!-- Timer -->
+  <div style="width:98px;height:31px;left:94px;top:159px;position:absolute;background:white;border-radius:3px;display:flex;align-items:center;gap:4px;padding:0 8px">
+    <img src="assets/icon-clock.png" alt="" style="width:22px;height:22px" onerror="this.outerHTML='⏱️'">
+    <span id="timer" style="color:#026F18;font-size:20px;font-family:Poppins;font-weight:500;line-height:25px">02:00</span>
+  </div>
+
+  <!-- Pergunta X/8 -->
+  <div style="width:120px;height:31px;left:228px;top:159px;position:absolute;background:white;border-radius:3px;display:flex;align-items:center;padding:0 8px">
+    <span style="color:#026F18;font-size:17px;font-family:Poppins;font-weight:500">Q: <span id="qNum">1/8</span></span>
+  </div>
+
+  <!-- Barra de progresso -->
+  <div style="width:364px;height:8px;left:38px;top:198px;position:absolute;background:rgba(255,255,255,0.3);border-radius:4px">
+    <div id="progressFill" style="height:100%;width:12.5%;background:#04a025;border-radius:4px;transition:width 0.4s ease"></div>
+  </div>
+
+  <!-- Card da pergunta -->
+  <div id="quizCard" style="width:364px;left:38px;top:218px;position:absolute;background:white;border-radius:8px;padding:20px 18px;min-height:530px"></div>
+
+  <!-- Feedback overlay -->
+  <div class="feedback-overlay" id="feedbackOverlay">
+    <img id="feedbackImg" src="" alt="">
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="js/game.js"></script>
+<script>
+var state = getState();
+var tvMode = state.tvMode || false;
+var timeLeft = state.timeLeft || 120;
+var timeTotal = state.timeTotal || 120;
+var score = 0;
+var currentQ = 0;
+var correctCount = 0;
+var timerId;
+var answered = false;
+
+// Embaralha as 8 perguntas
+var questions = shuffleDeck(PAIRS.map(function(p) {
+  return { q: p.quiz.q, opts: p.quiz.opts, c: p.quiz.c, exp: p.quiz.exp };
+}));
+
+function updateTimerDisplay() {
+  var m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+  document.getElementById('timer').textContent =
+    String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+}
+
+function startTimer() {
+  clearInterval(timerId);
+  updateTimerDisplay();
+  timerId = setInterval(function() {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) { clearInterval(timerId); endQuiz(); }
+  }, 1000);
+}
+
+function updateProgress() {
+  document.getElementById('qNum').textContent = (currentQ + 1) + '/8';
+  var pct = ((currentQ + 1) / 8 * 100).toFixed(1);
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+function renderQuestion() {
+  if (currentQ >= questions.length) { endQuiz(); return; }
+  answered = false;
+  updateProgress();
+  var q = questions[currentQ];
+  var card = document.getElementById('quizCard');
+
+  var html = '<div style="color:#026F18;font-size:17px;font-family:Poppins;font-weight:600;line-height:22px;margin-bottom:18px;text-align:center">' + q.q + '</div>';
+  html += '<div id="opts"></div>';
+  html += '<div id="expBox" style="background:#f0f7f1;border-radius:6px;padding:12px;margin-top:10px;color:#026F18;font-size:13px;line-height:1.5;display:none">' + q.exp + '</div>';
+  card.innerHTML = html;
+
+  var optsEl = document.getElementById('opts');
+  q.opts.forEach(function(opt, i) {
+    var btn = document.createElement('div');
+    btn.id = 'opt' + i;
+    btn.style.cssText = 'width:100%;min-height:44px;background:#026F18;border-radius:4px;margin-bottom:10px;display:flex;align-items:center;padding:8px 14px;cursor:pointer;color:white;font-size:15px;font-family:Poppins;font-weight:500;line-height:1.3;box-sizing:border-box';
+    btn.textContent = String.fromCharCode(65 + i) + ') ' + opt;
+    btn.addEventListener('click', function() { answerQuestion(i); });
+    optsEl.appendChild(btn);
+  });
+}
+
+function answerQuestion(sel) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerId);
+
+  var q = questions[currentQ];
+  var correct = (sel === q.c);
+  var allBtns = document.querySelectorAll('#opts > div');
+
+  allBtns.forEach(function(b) { b.style.cursor = 'default'; b.style.opacity = '0.6'; });
+
+  if (correct) {
+    allBtns[sel].style.background = '#04a025';
+    allBtns[sel].style.opacity = '1';
+    score += 150;
+    correctCount++;
+  } else {
+    allBtns[sel].style.background = '#FF0000';
+    allBtns[sel].style.opacity = '1';
+    if (allBtns[q.c]) { allBtns[q.c].style.background = '#04a025'; allBtns[q.c].style.opacity = '1'; }
+  }
+
+  var expBox = document.getElementById('expBox');
+  if (expBox) expBox.style.display = 'block';
+
+  showFeedback(correct);
+
+  setTimeout(function() {
+    hideFeedback();
+    currentQ++;
+    if (currentQ < questions.length) {
+      startTimer();
+      renderQuestion();
+    } else {
+      endQuiz();
+    }
+  }, 2500);
+}
+
+function showFeedback(ok) {
+  var ov = document.getElementById('feedbackOverlay');
+  var img = document.getElementById('feedbackImg');
+  img.src = ok ? 'assets/icon-correct.png' : 'assets/icon-wrong.png';
+  img.onerror = function() { this.outerHTML = '<div style="font-size:100px">' + (ok ? '✅' : '❌') + '</div>'; };
+  ov.classList.add('active');
+}
+
+function hideFeedback() {
+  document.getElementById('feedbackOverlay').classList.remove('active');
+}
+
+async function endQuiz() {
+  clearInterval(timerId);
+  var timeBonus = Math.floor(timeLeft / 10) * 20;
+  score += timeBonus;
+
+  var playerName = state.playerName || 'Jogador';
+  var roomCode = state.code || 'LOCAL';
+  var playerKey = state.playerKey || null;
+
+  var salaPlayers = await addToSalaRanking(roomCode, playerName, score);
+  await addToGeralRanking(playerName, score);
+
+  var pos = salaPlayers.findIndex(function(p) { return p.name === playerName && p.score === score; }) + 1;
+
+  if (tvMode && playerKey) {
+    await markPlayerPlayed(roomCode, playerKey, score);
+  }
+
+  saveState({
+    finalPos: pos,
+    finalScore: score,
+    finalTime: '—',
+    finalPairs: correctCount + '/8',
+    finalRoomCode: roomCode
+  });
+
+  goTo(tvMode ? 'modo-tv.html' : 'parabens.html');
+}
+
+function exitQuiz() {
+  showConfirm('Sair do quiz?', 'Seu progresso será perdido.', function() {
+    clearInterval(timerId);
+    goTo('index.html');
+  });
+}
+
+// INIT
+renderQuestion();
+startTimer();
+</script>
+</body>
+</html>
