@@ -301,10 +301,22 @@ function showQuiz(pairId, isLast) {
     if (opts[ci].origIdx === pair.quiz.c) { shuffledCorrect = ci; break; }
   }
 
+  // Publica quiz no Firebase para o telão ver
+  updateMyBoard(code, myKey, {
+    quiz: {
+      active: true,
+      pairId: pairId,
+      q: pair.quiz.q,
+      opts: opts.map(function(o) { return o.text; }),
+      correctIdx: shuffledCorrect,
+      answeredIdx: -1
+    }
+  });
+
   var optsEl = document.getElementById('quizOpts');
   opts.forEach(function(o, i) {
     var btn = document.createElement('div');
-    btn.style.cssText = 'width:293px;height:35px;background:#026F18;border-radius:3px;margin:0 auto 10px;display:flex;align-items:center;padding:0 16px;cursor:pointer;color:white;font-size:15px;font-family:Poppins;font-weight:500';
+    btn.style.cssText = 'width:293px;min-height:35px;background:#026F18;border-radius:3px;margin:0 auto 10px;display:flex;align-items:flex-start;padding:8px 16px;cursor:pointer;color:white;font-size:15px;font-family:Poppins;font-weight:500;line-height:1.3;overflow-wrap:break-word;word-break:break-word';
     btn.textContent = String.fromCharCode(65+i) + ') ' + o.text;
     (function(sel, correct, b, last) {
       b.addEventListener('click', function() { answerQuiz(sel, correct, b, last); });
@@ -324,13 +336,16 @@ function answerQuiz(sel, correct, btn, isLast) {
   else     { btn.style.background = '#FF0000'; btn.style.opacity = '1'; all[correct].style.background = '#04a025'; all[correct].style.opacity = '1'; }
   document.getElementById('quizExp').style.display = 'block';
 
+  // Sinaliza resposta para o telão
+  updateMyBoard(code, myKey, { 'quiz/answeredIdx': sel });
+
   setTimeout(function() {
     document.getElementById('quizOverlay').classList.remove('active');
     quizShowing = false;
     processing = false;
     setCardsClickable(true);
     showFeedback(ok);
-    updateMyBoard(code, myKey, { score: myScore });
+    updateMyBoard(code, myKey, { score: myScore, 'quiz/active': false });
     updateUI();
     if (isLast && !gameEnded) { gameEnded = true; setTimeout(endGame, 1400); }
   }, 2500);
