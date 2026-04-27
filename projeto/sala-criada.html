@@ -80,9 +80,7 @@ function escutarJogadores() {
 }
 escutarJogadores();
 
-if (tvMode) {
-  document.getElementById('btnIniciar').querySelector('span').textContent = 'MODO TV';
-} else if (!willPlay) {
+if (!willPlay && !tvMode) {
   document.getElementById('btnIniciar').querySelector('span').textContent = 'VOLTAR AO INÍCIO';
   document.getElementById('btnIniciar').onclick = function() { goTo('index.html'); };
 }
@@ -95,8 +93,31 @@ function copyCode() {
 
 async function iniciar() {
   if (tvMode) {
+    // Busca jogadores do Firebase
+    var snap = await db.ref('salas/' + code + '/jogadores').once('value');
+    var jogadores = snap.val() || {};
+    var keys = Object.keys(jogadores);
+    if (keys.length === 0) {
+      alert('Aguarde pelo menos 1 jogador entrar!');
+      return;
+    }
+
+    // Ordena por joinedAt para definir a ordem dos turnos
+    var entries = keys.map(function(k) {
+      return { key: k, name: jogadores[k].name || 'Jogador', joinedAt: jogadores[k].joinedAt || 0 };
+    }).sort(function(a, b) { return a.joinedAt - b.joinedAt; });
+
+    var playerKeys = entries.map(function(e) { return e.key; });
+    var timeTotal = state.timeTotal || 120;
+
+    // Inicializa gameState + boards com decks individuais ANTES de sinalizar início
+    await initGameStateV2(code, playerKeys, timeTotal);
+
+    // Sinaliza início — dispara os listeners em aguarde.html
     await iniciarPartidaFirebase(code);
-    goTo('modo-tv.html');
+
+    // Anfitrião vai para o telão
+    goTo('telao.html');
   } else if (willPlay) {
     await iniciarPartidaFirebase(code);
     goTo('jogo.html');

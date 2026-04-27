@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Telão — Semana da Segurança</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+  * { box-sizing:border-box; margin:0; padding:0 }
+  html, body { width:100%; height:100%; overflow:hidden; font-family:'Poppins',sans-serif }
+  body {
+    background: linear-gradient(160deg, #012d08 0%, #025618 55%, #013a0d 100%);
+    display:flex; flex-direction:column;
+  }
+
+  /* ── Top bar ───────────────────────────── */
+  #topBar {
+    flex-shrink:0;
+    height:72px;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:0 36px;
+    background:rgba(0,0,0,0.32);
+    border-bottom:2px solid rgba(255,255,255,0.10);
+  }
+
+  /* ── Middle ────────────────────────────── */
+  #middle {
+    flex:1;
+    min-height:0;
+    display:flex; align-items:stretch;
+    padding:18px 20px;
+    gap:0;
+  }
+
+  /* ── Board panels ───────────────────────── */
+  .board-panel {
+    flex:1;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    padding:18px 24px;
+    background:rgba(0,0,0,0.22);
+    border-radius:16px;
+    gap:10px;
+    min-width:0;
+  }
+
+  .player-name {
+    color:white;
+    font-size:clamp(16px, 2.4vh, 28px);
+    font-weight:700;
+    text-align:center;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    width:100%;
+    letter-spacing:0.3px;
+  }
+
+  .card-grid {
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:clamp(5px, 0.6vw, 10px);
+    width:min(42vw, 63vh);
+    aspect-ratio:1;
+  }
+
+  .card-cell {
+    aspect-ratio:1;
+    border-radius:clamp(4px, 0.5vw, 8px);
+    background-size:cover;
+    background-position:center;
+    transition:background .35s, opacity .35s;
+  }
+
+  .score-row {
+    display:flex; gap:20px; align-items:baseline;
+  }
+
+  /* ── Center nav column ──────────────────── */
+  #centerCol {
+    flex-shrink:0;
+    width:clamp(72px, 7vw, 110px);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:18px;
+    padding:0 4px;
+  }
+
+  .nav-btn {
+    display:none;
+    background:rgba(255,255,255,0.14);
+    border:2px solid rgba(255,255,255,0.2);
+    border-radius:10px;
+    padding:clamp(10px,1.2vh,16px) clamp(12px,1.4vw,20px);
+    cursor:pointer;
+    color:white;
+    font-size:clamp(12px,1.3vh,16px);
+    font-weight:600;
+    font-family:'Poppins',sans-serif;
+    text-align:center;
+    line-height:1.3;
+    transition:background .2s;
+    white-space:nowrap;
+  }
+  .nav-btn:hover { background:rgba(255,255,255,0.26) }
+
+  /* ── Ranking bar ─────────────────────────── */
+  #rankBar {
+    flex-shrink:0;
+    height:clamp(90px,11vh,120px);
+    background:rgba(0,0,0,0.38);
+    border-top:2px solid rgba(255,255,255,0.10);
+    display:flex; align-items:center;
+    padding:0 36px;
+    gap:14px;
+    overflow:hidden;
+  }
+
+  .rank-item {
+    flex-shrink:0;
+    background:rgba(255,255,255,0.09);
+    border-radius:10px;
+    padding:10px 18px;
+    display:flex; align-items:center; gap:10px;
+    min-width:min(200px, 20vw);
+  }
+  .rank-item.done { background:rgba(2,111,24,0.38) }
+
+  /* ── Overlays ─────────────────────────────── */
+  #memOverlay {
+    position:fixed; inset:0; z-index:20;
+    display:none; align-items:center; justify-content:center;
+    background:rgba(0,60,10,0.88);
+  }
+
+  #finishOverlay {
+    position:fixed; inset:0;
+    background:rgba(0,0,0,0.93);
+    z-index:50;
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+  }
+
+  /* ── Mobile / small screen ─────────────────── */
+  @media (max-width: 639px) {
+    #topBar { height:50px; padding:0 12px; gap:10px }
+    #topBar img { height:30px }
+    #middle { padding:8px 6px; gap:0 }
+    .board-panel { padding:8px 8px; border-radius:10px; gap:6px }
+    .card-grid { width:min(41vw, 28vh); gap:clamp(3px,0.5vw,6px) }
+    #centerCol { width:42px; gap:10px; padding:0 2px }
+    .nav-btn { padding:8px 8px; font-size:10px; border-radius:7px }
+    #rankBar { height:76px; padding:0 8px; gap:8px }
+    .rank-item { min-width:0; padding:6px 10px; gap:6px }
+    .score-row { gap:10px }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── Top Bar ─────────────────────────────────────────────────────── -->
+<div id="topBar">
+  <img src="assets/logo-honda.png" alt="Honda" style="height:42px" onerror="this.style.display='none'">
+
+  <div style="display:flex;align-items:center;gap:28px">
+    <div style="color:rgba(255,255,255,0.5);font-size:13px;font-weight:500;letter-spacing:1px">
+      SALA <span id="codeDisplay" style="color:white;font-weight:700;letter-spacing:3px"></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.12);border-radius:8px;padding:8px 20px">
+      <img src="assets/icon-clock.png" alt="" style="width:26px;height:26px" onerror="this.outerHTML='⏱'">
+      <span id="timer" style="color:white;font-size:clamp(22px,2.8vh,34px);font-weight:700;letter-spacing:1px">02:00</span>
+    </div>
+  </div>
+
+  <div id="phaseLabel" style="color:rgba(255,255,255,0.6);font-size:12px;font-weight:600;letter-spacing:3px;text-transform:uppercase">EM JOGO</div>
+</div>
+
+<!-- ── Middle: Boards + Nav ─────────────────────────────────────────── -->
+<div id="middle">
+
+  <!-- Board Esquerdo -->
+  <div class="board-panel">
+    <div id="nameL" class="player-name">—</div>
+    <div id="boardL" class="card-grid"></div>
+    <div class="score-row">
+      <span id="scoreL" style="color:#FFD700;font-size:clamp(16px,2.2vh,28px);font-weight:800">0 pts</span>
+      <span id="pairsL" style="color:rgba(255,255,255,0.5);font-size:clamp(13px,1.7vh,22px)">0/8</span>
+    </div>
+  </div>
+
+  <!-- Centro: Navegação -->
+  <div id="centerCol">
+    <button id="navPrev" class="nav-btn" onclick="shiftView(-1)">←<br>Ant.</button>
+    <div style="color:rgba(255,255,255,0.25);font-size:clamp(16px,2vh,24px);font-weight:700;letter-spacing:1px">VS</div>
+    <button id="navNext" class="nav-btn" onclick="shiftView(1)">→<br>Próx.</button>
+  </div>
+
+  <!-- Board Direito -->
+  <div class="board-panel">
+    <div id="nameR" class="player-name">—</div>
+    <div id="boardR" class="card-grid"></div>
+    <div class="score-row">
+      <span id="scoreR" style="color:#FFD700;font-size:clamp(16px,2.2vh,28px);font-weight:800">0 pts</span>
+      <span id="pairsR" style="color:rgba(255,255,255,0.5);font-size:clamp(13px,1.7vh,22px)">0/8</span>
+    </div>
+  </div>
+</div>
+
+<!-- ── Ranking Bar ──────────────────────────────────────────────────── -->
+<div id="rankBar">
+  <span style="color:rgba(255,255,255,0.4);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;margin-right:6px">RANKING</span>
+  <div id="rankItems" style="display:flex;gap:12px;overflow:hidden;flex:1;align-items:center"></div>
+</div>
+
+<!-- ── Overlay Memorização ─────────────────────────────────────────── -->
+<div id="memOverlay">
+  <div style="background:rgba(1,55,12,0.98);border-radius:24px;padding:clamp(32px,5vh,64px) clamp(60px,8vw,120px);text-align:center;box-shadow:0 20px 80px rgba(0,0,0,0.7)">
+    <div style="color:white;font-size:clamp(24px,3.5vh,42px);font-weight:700;letter-spacing:3px;margin-bottom:4px">MEMORIZE!</div>
+    <div id="memCount" style="color:#FFD700;font-size:clamp(120px,18vw,260px);font-weight:800;line-height:1">5</div>
+    <div style="color:rgba(255,255,255,0.55);font-size:clamp(14px,1.8vh,20px);font-weight:400;margin-top:8px">Memorize os pares antes do jogo começar</div>
+  </div>
+</div>
+
+<!-- ── Overlay Fim de Jogo ─────────────────────────────────────────── -->
+<div id="finishOverlay">
+  <div style="color:#FFD700;font-size:clamp(32px,4.5vh,60px);font-weight:800;margin-bottom:28px">🏆 FIM DE JOGO!</div>
+  <div id="finalList" style="width:min(720px,82vw);margin-bottom:28px"></div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center">
+    <div onclick="goTo('ranking-sala.html')" style="background:rgba(255,255,255,0.12);border:2px solid rgba(255,255,255,0.3);border-radius:10px;padding:clamp(10px,1.4vh,16px) clamp(28px,3.5vw,48px);cursor:pointer;color:white;font-size:clamp(14px,1.8vh,22px);font-weight:600;font-family:'Poppins',sans-serif">VER RANKING DA SALA</div>
+    <div onclick="goTo('index.html')" style="background:#FF0000;border-radius:10px;padding:clamp(10px,1.4vh,16px) clamp(28px,3.5vw,48px);cursor:pointer;color:white;font-size:clamp(14px,1.8vh,22px);font-weight:700;font-family:'Poppins',sans-serif">VOLTAR AO INÍCIO</div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="js/game.js"></script>
+<script>
+var state = getState();
+var code = state.code || '';
+document.getElementById('codeDisplay').textContent = code;
+
+// ── Estado ─────────────────────────────────────────────────────────────
+var gameState    = null;
+var allBoards    = {};
+var allPlayers   = {};
+var playerOrder  = [];
+var currentPhase = null;
+var viewIndex    = 0;
+var timerInterval = null;
+var timerStarted  = false;
+var memTimeout    = null;
+var gameEnded     = false;
+
+// ── Helpers ────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function getTimeLeft() {
+  if (!gameState || !gameState.timerStart) return (gameState ? gameState.timerTotal : 120) || 120;
+  return Math.max(0, (gameState.timerTotal || 120) - Math.floor((Date.now() - gameState.timerStart) / 1000));
+}
+
+function updateTimerDisplay() {
+  var left = getTimeLeft();
+  var m = Math.floor(left / 60), s = left % 60;
+  document.getElementById('timer').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  return left;
+}
+
+function startTimerTick() {
+  if (timerStarted) return;
+  timerStarted = true;
+  timerInterval = setInterval(function() {
+    var left = updateTimerDisplay();
+    if (left <= 0 && !gameEnded) {
+      gameEnded = true;
+      gsUpdate(code, { phase: 'finished' });
+      showFinished();
+    }
+  }, 500);
+}
+
+// ── Board rendering (CSS grid) ─────────────────────────────────────────
+function emptyGrid(el) {
+  var ph = '';
+  for (var i = 0; i < 16; i++) ph += '<div class="card-cell" style="background:rgba(255,255,255,0.05)"></div>';
+  el.innerHTML = ph;
+}
+
+function renderMiniBoard(containerId, playerKey) {
+  var el = document.getElementById(containerId);
+  if (!playerKey) { emptyGrid(el); return; }
+
+  var board = allBoards[playerKey] || {};
+  var playerDeck = toArray(board.deck || []);
+  if (!playerDeck.length) { emptyGrid(el); return; }
+
+  var flipped = toArray(board.flipped || []);
+  var matched = board.matched || {};
+  var isMemorizing = (currentPhase === 'memorization');
+
+  var html = '';
+  playerDeck.forEach(function(card, idx) {
+    var isMatched = matched[String(idx)] !== undefined;
+    var showFace  = isMemorizing || isMatched || flipped.indexOf(idx) !== -1;
+    var bg        = showFace ? 'url(' + card.img + ') center/cover #1a5c2e' : 'url(assets/card-back.png) center/cover #026F18';
+    var opacity   = isMatched ? '0.38' : '1';
+    html += '<div class="card-cell" style="background:' + bg + ';opacity:' + opacity + '"></div>';
+  });
+
+  el.innerHTML = html;
+}
+
+function updateBoardPanel(side, playerKey) {
+  var nameEl  = document.getElementById('name'  + side);
+  var scoreEl = document.getElementById('score' + side);
+  var pairsEl = document.getElementById('pairs' + side);
+
+  if (!playerKey) {
+    nameEl.textContent  = '—';
+    scoreEl.textContent = '0 pts';
+    pairsEl.textContent = '';
+    renderMiniBoard('board' + side, null);
+    return;
+  }
+
+  var pName = (allPlayers[playerKey] || {}).name || '?';
+  var board = allBoards[playerKey]  || {};
+  var done  = board.finished;
+
+  nameEl.textContent  = pName + (done ? ' ✅' : '');
+  scoreEl.textContent = (board.score || 0) + ' pts';
+  pairsEl.textContent = (board.matchedCount || 0) + '/8';
+
+  renderMiniBoard('board' + side, playerKey);
+}
+
+// ── Navegação ──────────────────────────────────────────────────────────
+function getViewedKeys() {
+  var n = playerOrder.length;
+  if (n === 0) return [null, null];
+  if (n === 1) return [playerOrder[0], null];
+  var li = viewIndex % n;
+  var ri = (viewIndex + 1) % n;
+  return [playerOrder[li], playerOrder[ri]];
+}
+
+function shiftView(delta) {
+  var n = playerOrder.length;
+  if (n <= 2) return;
+  viewIndex = ((viewIndex + delta) % n + n) % n;
+  renderBoards();
+  updateNavButtons();
+}
+
+function updateNavButtons() {
+  var show = playerOrder.length > 2 ? 'block' : 'none';
+  document.getElementById('navPrev').style.display = show;
+  document.getElementById('navNext').style.display = show;
+}
+
+function renderBoards() {
+  var keys = getViewedKeys();
+  updateBoardPanel('L', keys[0]);
+  updateBoardPanel('R', keys[1]);
+}
+
+// ── Ranking bar ────────────────────────────────────────────────────────
+function renderRankBar() {
+  var entries = playerOrder.map(function(k) {
+    var b = allBoards[k]  || {};
+    var p = allPlayers[k] || {};
+    return { name: p.name || '?', score: b.score || 0, pairs: b.matchedCount || 0, finished: b.finished || false };
+  }).sort(function(a, b) { return b.score - a.score || b.pairs - a.pairs; });
+
+  var medals = ['🥇','🥈','🥉'];
+  var html = '';
+  entries.forEach(function(e, i) {
+    html +=
+      '<div class="rank-item' + (e.finished ? ' done' : '') + '">' +
+        '<span style="font-size:clamp(18px,2.2vh,26px)">' + (medals[i] || (i+1)+'º') + '</span>' +
+        '<div style="min-width:0">' +
+          '<div style="color:white;font-size:clamp(13px,1.7vh,18px);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:min(160px,14vw)">' + escHtml(e.name) + (e.finished ? ' ✅' : '') + '</div>' +
+          '<div style="color:rgba(255,255,255,0.45);font-size:clamp(10px,1.3vh,14px)">' + e.pairs + '/8 pares</div>' +
+        '</div>' +
+        '<div style="color:#FFD700;font-size:clamp(14px,1.8vh,20px);font-weight:800;margin-left:auto;padding-left:10px;white-space:nowrap">' + e.score + ' pts</div>' +
+      '</div>';
+  });
+  document.getElementById('rankItems').innerHTML = html;
+}
+
+// ── Memorização ────────────────────────────────────────────────────────
+function startMemorizationCountdown(gs) {
+  var memStart = gs.memorizeStart || Date.now();
+  clearTimeout(memTimeout);
+  document.getElementById('memOverlay').style.display = 'flex';
+  document.getElementById('phaseLabel').textContent = 'MEMORIZAÇÃO';
+
+  function tick() {
+    var remaining = Math.max(0, Math.ceil((5000 - (Date.now() - memStart)) / 1000));
+    document.getElementById('memCount').textContent = remaining || 1;
+    if (remaining <= 0) {
+      document.getElementById('memOverlay').style.display = 'none';
+      document.getElementById('phaseLabel').textContent = 'EM JOGO';
+      gsUpdate(code, { phase: 'playing', timerStart: Date.now() });
+      startTimerTick();
+    } else {
+      memTimeout = setTimeout(tick, 300);
+    }
+  }
+  tick();
+}
+
+// ── Fim de jogo ────────────────────────────────────────────────────────
+var finishShown = false;
+function showFinished() {
+  if (finishShown) return;
+  finishShown = true;
+  clearInterval(timerInterval);
+  var entries = playerOrder.map(function(k) {
+    var b = allBoards[k]  || {};
+    var p = allPlayers[k] || {};
+    return { name: p.name || '?', score: b.score || 0, pairs: b.matchedCount || 0 };
+  }).sort(function(a, b) { return b.score - a.score || b.pairs - a.pairs; });
+
+  var medals = ['🥇','🥈','🥉'];
+  var html = '';
+  entries.forEach(function(e, i) {
+    html +=
+      '<div style="background:rgba(255,255,255,0.10);border-radius:10px;padding:clamp(10px,1.4vh,18px) clamp(16px,2.2vw,28px);margin-bottom:10px;display:flex;align-items:center;gap:14px">' +
+        '<span style="font-size:clamp(24px,3.5vh,40px)">' + (medals[i] || (i+1)+'º') + '</span>' +
+        '<span style="color:white;font-size:clamp(16px,2.2vh,24px);font-weight:600;flex:1">' + escHtml(e.name) + '</span>' +
+        '<span style="color:rgba(255,255,255,0.5);font-size:clamp(13px,1.8vh,18px);margin-right:10px">' + e.pairs + '/8</span>' +
+        '<span style="color:#FFD700;font-size:clamp(18px,2.6vh,30px);font-weight:800">' + e.score + ' pts</span>' +
+      '</div>';
+  });
+  document.getElementById('finalList').innerHTML = html;
+  document.getElementById('finishOverlay').style.display = 'flex';
+}
+
+// ── Firebase listeners ─────────────────────────────────────────────────
+if (firebaseReady) {
+  db.ref('salas/' + code + '/jogadores').on('value', function(snap) {
+    var data = snap.val() || {};
+    allPlayers = data;
+    playerOrder = Object.keys(data).sort(function(a, b) {
+      return (data[a].joinedAt || 0) - (data[b].joinedAt || 0);
+    });
+    if (viewIndex >= playerOrder.length && playerOrder.length > 0) viewIndex = 0;
+    updateNavButtons();
+    renderBoards();
+    renderRankBar();
+  });
+}
+
+listenGameState(code, function(gs) {
+  if (!gs) return;
+  gameState = gs;
+
+  var phase = gs.phase;
+  if (phase !== currentPhase) {
+    currentPhase = phase;
+    if (phase === 'memorization') {
+      startMemorizationCountdown(gs);
+    } else if (phase === 'playing') {
+      document.getElementById('memOverlay').style.display = 'none';
+      clearTimeout(memTimeout);
+      document.getElementById('phaseLabel').textContent = 'EM JOGO';
+      startTimerTick();
+    } else if (phase === 'finished') {
+      clearInterval(timerInterval);
+      if (!gameEnded) { gameEnded = true; showFinished(); }
+    }
+  }
+
+  if (phase === 'playing') updateTimerDisplay();
+  renderBoards();
+  renderRankBar();
+});
+
+listenAllBoards(code, function(boards) {
+  if (!boards) return;
+  allBoards = boards;
+  renderBoards();
+  renderRankBar();
+
+  if (playerOrder.length > 0 && !gameEnded) {
+    var allDone = playerOrder.every(function(k) { return boards[k] && boards[k].finished; });
+    if (allDone) {
+      gameEnded = true;
+      gsUpdate(code, { phase: 'finished' });
+      showFinished();
+    }
+  }
+});
+</script>
+</body>
+</html>

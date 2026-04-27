@@ -64,10 +64,15 @@
 <script src="js/game.js"></script>
 <script>
 const state = getState();
-document.getElementById('fPos').textContent = (state.finalPos || 5) + 'º Lugar';
-document.getElementById('fScore').textContent = (state.finalScore || 190) + ' pts';
-document.getElementById('fTime').textContent = state.finalTime || '01:30';
-document.getElementById('fPairs').textContent = state.finalPairs || '6/8';
+// Lê da sessionStorage primeiro (isolado por aba) — evita conflito entre jogadores
+const fPos   = sessionStorage.getItem('hondaFinalPos')   || state.finalPos   || '5';
+const fScore = sessionStorage.getItem('hondaFinalScore') || state.finalScore || '190';
+const fTime  = sessionStorage.getItem('hondaFinalTime')  || state.finalTime  || '01:30';
+const fPairs = sessionStorage.getItem('hondaFinalPairs') || state.finalPairs || '6/8';
+document.getElementById('fPos').textContent   = fPos + 'º Lugar';
+document.getElementById('fScore').textContent = fScore + ' pts';
+document.getElementById('fTime').textContent  = fTime;
+document.getElementById('fPairs').textContent = fPairs;
 </script>
 </body>
 </html>

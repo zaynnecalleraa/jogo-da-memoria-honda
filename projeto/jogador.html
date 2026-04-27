@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=440,user-scalable=no">
+<title>Jogando — Semana da Segurança</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+  .card{position:absolute;width:106px;height:106px;cursor:pointer;perspective:800px}
+  .card-inner{width:100%;height:100%;position:relative;transition:transform .5s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
+  .card.flipped .card-inner,.card.matched .card-inner{transform:rotateY(180deg)}
+  .card.matched{pointer-events:none;opacity:.5}
+  .card-face{position:absolute;inset:0;border-radius:8px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+  .card-front{background:url('assets/card-back.png') center/cover no-repeat #026F18}
+  .card-back{transform:rotateY(180deg)}
+  .card-back img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+
+  .quiz-overlay{position:absolute;inset:0;z-index:50;display:none;align-items:flex-start;justify-content:center;padding-top:160px}
+  .quiz-overlay.active{display:flex}
+  .quiz-bg{position:absolute;inset:0;background:rgba(0,0,0,0.65);z-index:0}
+
+  .feedback-overlay{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,0.70);display:none;align-items:center;justify-content:center}
+  .feedback-overlay.active{display:flex}
+  .feedback-overlay img{width:153px;height:153px;animation:popIn .4s ease-out}
+  @keyframes popIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+
+  .combo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;pointer-events:none;font-size:42px;font-weight:800;font-family:Poppins;color:#FFD700;text-shadow:0 0 20px rgba(255,215,0,.6),2px 2px 4px rgba(0,0,0,.5);opacity:0}
+  .combo.show{animation:comboPop .8s ease-out forwards}
+  @keyframes comboPop{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}30%{transform:translate(-50%,-50%) scale(1.3);opacity:1}100%{transform:translate(-50%,-60%) scale(1);opacity:0}}
+</style>
+</head>
+<body>
+<div class="frame" id="frame">
+  <img class="bg" src="assets/fundo.png" alt="">
+  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+
+  <!-- Timer -->
+  <div style="width:98px;height:31px;left:94px;top:159px;position:absolute;background:white;border-radius:3px;display:flex;align-items:center;gap:4px;padding:0 8px">
+    <img src="assets/icon-clock.png" alt="" style="width:22px;height:22px" onerror="this.outerHTML='⏱️'">
+    <span id="timer" style="color:#026F18;font-size:20px;font-family:Poppins;font-weight:500;line-height:25px">02:00</span>
+  </div>
+
+  <!-- Pares -->
+  <div style="width:120px;height:31px;left:225px;top:159px;position:absolute;background:white;border-radius:3px;display:flex;align-items:center;padding:0 8px">
+    <span style="color:#026F18;font-size:20px;font-family:Poppins;font-weight:500;line-height:25px">Pares: <span id="pairs">0/8</span></span>
+  </div>
+
+  <!-- Pontuação -->
+  <div style="left:30px;top:205px;position:absolute;width:380px;text-align:center;color:white;font-size:13px;font-family:Poppins;font-weight:400;line-height:14px;opacity:0.85" id="scoreDisplay">
+    Encontre os pares antes do tempo acabar!
+  </div>
+
+  <!-- Grid de cartas -->
+  <div id="grid"></div>
+
+  <!-- Combo -->
+  <div class="combo" id="combo"></div>
+
+  <!-- Quiz overlay -->
+  <div class="quiz-overlay" id="quizOverlay">
+    <div class="quiz-bg"></div>
+    <div id="quizCard" style="width:363px;background:white;border-radius:8px;padding:24px 20px;position:relative;z-index:1"></div>
+  </div>
+
+  <!-- Feedback overlay -->
+  <div class="feedback-overlay" id="feedbackOverlay">
+    <img id="feedbackImg" src="" alt="">
+  </div>
+
+  <!-- Overlay de memorização -->
+  <div id="memOverlay" style="position:absolute;left:0;top:0;width:440px;height:956px;z-index:20;display:none;align-items:center;justify-content:center;pointer-events:none">
+    <div style="background:rgba(2,90,14,0.95);border-radius:16px;padding:24px 44px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.4)">
+      <div style="color:white;font-size:20px;font-family:Poppins;font-weight:700;letter-spacing:1px">MEMORIZE!</div>
+      <div id="memCount" style="color:#FFD700;font-size:80px;font-family:Poppins;font-weight:800;line-height:1">5</div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="js/game.js"></script>
+<script>
+var state = getState();
+var code    = state.code       || '';
+var myKey   = sessionStorage.getItem('hondaCurrentPlayerKey')  || state.playerKey  || '';
+var myName  = sessionStorage.getItem('hondaCurrentPlayerName') || state.playerName || 'Jogador';
+var MODE    = state.mode       || 'memory';
+
+// ── Estado local ──────────────────────────────────────────────────────────────
+var gameState   = null;
+var deck        = [];
+var gridBuilt   = false;
+var currentPhase = null;
+var processing  = false;
+var localFlipped = [];
+var localMatched = {};
+var myScore     = 0;
+var myPairs     = 0;
+var combo       = 0;
+var quizShowing = false;
+var timerStarted = false;
+var timerInterval = null;
+var memTimeout  = null;
+var gameEnded   = false;
+
+// ── Posições Figma (mesmas do jogo.html) ──────────────────────────────────────
+var positions = [];
+var cols = [21, 119, 216, 312];
+var rows = [299, 416, 533, 650];
+for (var ri = 0; ri < rows.length; ri++)
+  for (var ci = 0; ci < cols.length; ci++)
+    positions.push({ x: cols[ci], y: rows[ri] });
+
+// ── Grid ──────────────────────────────────────────────────────────────────────
+function buildGrid() {
+  var grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  deck.forEach(function(card, idx) {
+    var pos = positions[idx];
+    var el = document.createElement('div');
+    el.className = 'card';
+    el.style.left = pos.x + 'px';
+    el.style.top  = pos.y + 'px';
+    el.innerHTML =
+      '<div class="card-inner">' +
+        '<div class="card-face card-front"></div>' +
+        '<div class="card-face card-back"><img src="' + card.img + '" alt="" onerror="this.style.background=\'#1a5c2e\'"></div>' +
+      '</div>';
+    (function(i) { el.addEventListener('click', function() { flip(i); }); })(idx);
+    grid.appendChild(el);
+  });
+}
+
+function showAllCardsUp() {
+  document.querySelectorAll('.card').forEach(function(el) {
+    if (!el.classList.contains('matched')) el.classList.add('flipped');
+  });
+}
+function hideAllCardsUp() {
+  document.querySelectorAll('.card').forEach(function(el) {
+    if (!el.classList.contains('matched')) el.classList.remove('flipped');
+  });
+}
+function setCardsClickable(yes) {
+  document.querySelectorAll('.card').forEach(function(el) {
+    el.style.cursor = (yes && !el.classList.contains('matched')) ? 'pointer' : 'default';
+  });
+}
+
+// ── Flip & Match ──────────────────────────────────────────────────────────────
+function flip(idx) {
+  if (processing || currentPhase !== 'playing') return;
+  var cards = document.querySelectorAll('.card');
+  var el = cards[idx];
+  if (!el || el.classList.contains('matched') || el.classList.contains('flipped')) return;
+  if (localFlipped.length >= 2) return;
+
+  // Flip optimista
+  el.classList.add('flipped');
+  var newFlipped = localFlipped.concat([idx]);
+  localFlipped = newFlipped;
+
+  var upd = {}; upd['flipped'] = newFlipped;
+  updateMyBoard(code, myKey, upd);
+
+  if (newFlipped.length === 2) {
+    processing = true;
+    setCardsClickable(false);
+    setTimeout(function() { checkMatch(newFlipped[0], newFlipped[1]); }, 800);
+  }
+}
+
+function checkMatch(a, b) {
+  var c1 = deck[a], c2 = deck[b];
+  var cards = document.querySelectorAll('.card');
+
+  if (c1 && c2 && c1.pairId === c2.pairId && c1.type !== c2.type) {
+    // ── PAR ENCONTRADO ──
+    combo++;
+    var tl = getTimeLeft();
+    var gain = 100 + Math.min(combo * 25, 100) + Math.floor(tl / 10) * 5;
+    myScore += gain;
+    myPairs++;
+
+    cards[a].classList.add('matched');
+    cards[b].classList.add('matched');
+    localMatched[String(a)] = c1.pairId;
+    localMatched[String(b)] = c1.pairId;
+    localFlipped = [];
+
+    if (combo >= 2) showCombo(combo);
+
+    var upd = { flipped: [], score: myScore, matchedCount: myPairs };
+    upd['matched/' + a] = c1.pairId;
+    upd['matched/' + b] = c1.pairId;
+
+    var isLast = myPairs >= 8;
+    if (isLast) { upd.finished = true; upd.finishedAt = Date.now(); }
+
+    if (MODE === 'quiz') {
+      // Salva match no Firebase primeiro, quiz vem depois
+      updateMyBoard(code, myKey, upd);
+      showQuiz(c1.pairId, isLast);
+    } else {
+      updateMyBoard(code, myKey, upd).then(function() {
+        processing = false;
+        setCardsClickable(true);
+        showFeedback(true);
+        updateUI();
+        if (isLast && !gameEnded) { gameEnded = true; setTimeout(endGame, 1400); }
+      });
+    }
+  } else {
+    // ── ERRO ──
+    combo = 0;
+    setTimeout(function() {
+      cards[a].classList.remove('flipped');
+      cards[b].classList.remove('flipped');
+      localFlipped = [];
+      updateMyBoard(code, myKey, { flipped: [] }).then(function() {
+        processing = false;
+        setCardsClickable(true);
+      });
+    }, 600);
+  }
+}
+
+// ── Timer ─────────────────────────────────────────────────────────────────────
+function getTimeLeft() {
+  if (!gameState || !gameState.timerStart) return (gameState ? gameState.timerTotal : 120) || 120;
+  return Math.max(0, (gameState.timerTotal || 120) - Math.floor((Date.now() - gameState.timerStart) / 1000));
+}
+
+function updateTimerDisplay() {
+  var left = getTimeLeft();
+  var m = Math.floor(left / 60), s = left % 60;
+  document.getElementById('timer').textContent = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  return left;
+}
+
+function startTimerTick() {
+  if (timerStarted) return;
+  timerStarted = true;
+  timerInterval = setInterval(function() {
+    var left = updateTimerDisplay();
+    if (left <= 0 && !gameEnded) {
+      gameEnded = true;
+      endGame();
+    }
+  }, 500);
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+function updateUI() {
+  document.getElementById('pairs').textContent = myPairs + '/8';
+  document.getElementById('scoreDisplay').textContent = 'Pontos: ' + myScore;
+}
+
+function showCombo(c) {
+  var el = document.getElementById('combo');
+  el.textContent = 'COMBO x' + c + '!';
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  setTimeout(function() { el.classList.remove('show'); }, 1000);
+}
+
+function showFeedback(ok) {
+  var ov = document.getElementById('feedbackOverlay');
+  var img = document.getElementById('feedbackImg');
+  img.src = ok ? 'assets/icon-correct.png' : 'assets/icon-wrong.png';
+  img.onerror = function() { this.outerHTML = '<div style="font-size:100px">' + (ok ? '✅' : '❌') + '</div>'; };
+  ov.classList.add('active');
+  setTimeout(function() { ov.classList.remove('active'); }, 1200);
+}
+
+// ── Quiz ──────────────────────────────────────────────────────────────────────
+function showQuiz(pairId, isLast) {
+  var pair = PAIRS.find(function(p) { return p.id === pairId; });
+  if (!pair) { finishQuiz(false, isLast); return; }
+
+  var card = document.getElementById('quizCard');
+  card.innerHTML =
+    '<div style="text-align:center;color:#026F18;font-size:22px;font-family:Poppins;font-weight:700;margin-bottom:14px">PAR ENCONTRADO!</div>' +
+    '<div style="display:flex;gap:12px;justify-content:center;margin-bottom:14px">' +
+      '<img src="' + getCardImg(pairId,'sit') + '" style="width:100px;height:100px;border-radius:8px;object-fit:cover" onerror="this.style.background=\'#ccc\'">' +
+      '<img src="' + getCardImg(pairId,'sol') + '" style="width:100px;height:100px;border-radius:8px;object-fit:cover" onerror="this.style.background=\'#ccc\'">' +
+    '</div>' +
+    '<div style="text-align:center;color:#026F18;font-size:15px;font-family:Poppins;font-weight:500;margin-bottom:14px;line-height:1.35">' + pair.quiz.q + '</div>' +
+    '<div id="quizOpts"></div>' +
+    '<div id="quizExp" style="background:#f0f7f1;border-radius:6px;padding:10px;margin-top:8px;color:#026F18;font-size:13px;line-height:1.4;display:none">' + pair.quiz.exp + '</div>';
+
+  // Embaralha as alternativas (mantém rastreio da resposta correta)
+  var opts = pair.quiz.opts.map(function(text, i) { return { text: text, origIdx: i }; });
+  for (var si = opts.length - 1; si > 0; si--) {
+    var sj = Math.floor(Math.random() * (si + 1));
+    var tmp = opts[si]; opts[si] = opts[sj]; opts[sj] = tmp;
+  }
+  var shuffledCorrect = 0;
+  for (var ci = 0; ci < opts.length; ci++) {
+    if (opts[ci].origIdx === pair.quiz.c) { shuffledCorrect = ci; break; }
+  }
+
+  var optsEl = document.getElementById('quizOpts');
+  opts.forEach(function(o, i) {
+    var btn = document.createElement('div');
+    btn.style.cssText = 'width:293px;height:35px;background:#026F18;border-radius:3px;margin:0 auto 10px;display:flex;align-items:center;padding:0 16px;cursor:pointer;color:white;font-size:15px;font-family:Poppins;font-weight:500';
+    btn.textContent = String.fromCharCode(65+i) + ') ' + o.text;
+    (function(sel, correct, b, last) {
+      b.addEventListener('click', function() { answerQuiz(sel, correct, b, last); });
+    })(i, shuffledCorrect, btn, isLast);
+    optsEl.appendChild(btn);
+  });
+
+  document.getElementById('quizOverlay').classList.add('active');
+  quizShowing = true;
+}
+
+function answerQuiz(sel, correct, btn, isLast) {
+  var all = document.querySelectorAll('#quizOpts > div');
+  all.forEach(function(b) { b.style.pointerEvents = 'none'; b.style.opacity = '0.6'; });
+  var ok = (sel === correct);
+  if (ok) { myScore += 150; btn.style.background = '#04a025'; btn.style.opacity = '1'; }
+  else     { btn.style.background = '#FF0000'; btn.style.opacity = '1'; all[correct].style.background = '#04a025'; all[correct].style.opacity = '1'; }
+  document.getElementById('quizExp').style.display = 'block';
+
+  setTimeout(function() {
+    document.getElementById('quizOverlay').classList.remove('active');
+    quizShowing = false;
+    processing = false;
+    setCardsClickable(true);
+    showFeedback(ok);
+    updateMyBoard(code, myKey, { score: myScore });
+    updateUI();
+    if (isLast && !gameEnded) { gameEnded = true; setTimeout(endGame, 1400); }
+  }, 2500);
+}
+
+// ── Memorização ───────────────────────────────────────────────────────────────
+function startMemorizationCountdown(gs) {
+  var memStart = gs.memorizeStart || Date.now();
+  clearTimeout(memTimeout);
+  document.getElementById('memOverlay').style.display = 'flex';
+
+  // Mostra todas as cartas viradas para memorizar
+  if (gridBuilt) showAllCardsUp();
+
+  function tick() {
+    var remaining = Math.max(0, Math.ceil((5000 - (Date.now() - memStart)) / 1000));
+    document.getElementById('memCount').textContent = remaining || 1;
+    if (remaining > 0) memTimeout = setTimeout(tick, 300);
+    // Transição disparada quando telão escreve phase='playing'
+  }
+  tick();
+}
+
+// ── Fim de jogo ───────────────────────────────────────────────────────────────
+async function endGame() {
+  clearInterval(timerInterval);
+
+  // Garante board finalizado no Firebase
+  var upd = { finished: true, score: myScore, matchedCount: myPairs };
+  if (!upd.finishedAt) upd.finishedAt = Date.now();
+  await updateMyBoard(code, myKey, upd);
+
+  // Posição pelo score atual dos boards (leitura rápida)
+  var boardsSnap = await db.ref('salas/' + code + '/boards').once('value');
+  var boards = boardsSnap.val() || {};
+  var myFinalScore = myScore;
+  var pos = 1 + Object.keys(boards).filter(function(k) {
+    return k !== myKey && (boards[k].score || 0) > myFinalScore;
+  }).length;
+
+  var timerTotal = gameState ? (gameState.timerTotal || 120) : 120;
+  var timerStart = gameState ? (gameState.timerStart || 0) : 0;
+  var elapsed = timerStart ? Math.min(Math.floor((Date.now() - timerStart) / 1000), timerTotal) : timerTotal;
+  var m = Math.floor(elapsed / 60), s = elapsed % 60;
+
+  await addToSalaRanking(code, myName, myFinalScore);
+  await addToGeralRanking(myName, myFinalScore);
+  if (myKey) await markPlayerPlayed(code, myKey, myFinalScore);
+
+  var finalTime = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+  var finalPairs = myPairs + '/8';
+
+  // sessionStorage é por aba — cada jogador vê seus próprios resultados
+  sessionStorage.setItem('hondaFinalPos',      String(pos));
+  sessionStorage.setItem('hondaFinalScore',    String(myFinalScore));
+  sessionStorage.setItem('hondaFinalTime',     finalTime);
+  sessionStorage.setItem('hondaFinalPairs',    finalPairs);
+  sessionStorage.setItem('hondaFinalRoomCode', code);
+
+  saveState({ finalPos: pos, finalScore: myFinalScore, finalTime: finalTime, finalPairs: finalPairs, finalRoomCode: code });
+
+  goTo('parabens.html');
+}
+
+// ── Lê o deck do próprio board (cada jogador tem deck diferente) ──────────────
+function readOwnDeck() {
+  if (!myKey || !firebaseReady) { setTimeout(readOwnDeck, 400); return; }
+  db.ref('salas/' + code + '/boards/' + myKey + '/deck').once('value', function(snap) {
+    var d = snap.val();
+    if (d && !gridBuilt) {
+      deck = toArray(d);
+      buildGrid();
+      gridBuilt = true;
+      if (currentPhase === 'memorization') showAllCardsUp();
+      else if (currentPhase === 'playing') { hideAllCardsUp(); setCardsClickable(true); }
+    } else if (!d) {
+      setTimeout(readOwnDeck, 500);
+    }
+  });
+}
+readOwnDeck();
+
+// ── Listener principal (gameState compartilhado) ──────────────────────────────
+listenGameState(code, function(gs) {
+  if (!gs) return;
+  gameState = gs;
+
+  var phase = gs.phase;
+  if (phase !== currentPhase) {
+    currentPhase = phase;
+
+    if (phase === 'memorization') {
+      startMemorizationCountdown(gs);
+    } else if (phase === 'playing') {
+      document.getElementById('memOverlay').style.display = 'none';
+      clearTimeout(memTimeout);
+      if (gridBuilt) hideAllCardsUp();
+      setCardsClickable(true);
+      startTimerTick();
+      document.getElementById('scoreDisplay').textContent = 'Pontos: ' + myScore;
+    } else if (phase === 'finished') {
+      if (!gameEnded) { gameEnded = true; endGame(); }
+    }
+  }
+
+  if (phase === 'playing' && gs.timerStart) updateTimerDisplay();
+});
+</script>
+</body>
+</html>

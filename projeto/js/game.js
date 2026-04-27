@@ -115,7 +115,7 @@ async function addToGeralRanking(name, score) {
 async function getGeralRanking() {
   if (!firebaseReady) { console.error('Firebase não conectado!'); return []; }
   try {
-    var snap = await db.ref('rankingGeral').orderByChild('score').limitToLast(50).once('value');
+    var snap = await db.ref('rankingGeral').orderByChild('score').limitToLast(500).once('value');
     var arr = [];
     snap.forEach(function(c) { arr.push(c.val()); });
     arr.sort(function(a, b) { return b.score - a.score; });
@@ -144,7 +144,7 @@ async function addToSalaRanking(code, name, score) {
 async function getSalaRanking(code) {
   if (!firebaseReady) { console.error('Firebase não conectado!'); return []; }
   try {
-    var snap = await db.ref('rankingSala/' + code).orderByChild('score').limitToLast(50).once('value');
+    var snap = await db.ref('rankingSala/' + code).orderByChild('score').limitToLast(500).once('value');
     var arr = [];
     snap.forEach(function(c) { arr.push(c.val()); });
     arr.sort(function(a, b) { return b.score - a.score; });
@@ -218,6 +218,9 @@ async function entrarSalaFirebase(code, playerName) {
       tvMode: salaData.tvMode || false,
       playerKey: ref.key
     });
+    // sessionStorage is tab-isolated — prevents cross-tab key contamination
+    sessionStorage.setItem('hondaCurrentPlayerKey', ref.key);
+    sessionStorage.setItem('hondaCurrentPlayerName', playerName);
     return true;
   } catch(e) { console.error('Erro ao entrar:', e); return false; }
 }
@@ -341,6 +344,110 @@ function parseTimeFields(minEl, secEl) {
 // NAVIGATE
 // ============================================
 function goTo(page) { window.location.href = page; }
+
+// ============================================
+// TURN-BASED MULTIPLAYER — gameState no Firebase
+// ============================================
+
+// Normaliza array do Firebase (pode vir como {0:..., 1:...})
+function toArray(val) {
+  if (!val) return [];
+  if (Array.isArray(val)) return val;
+  return Object.keys(val).sort(function(a,b){ return parseInt(a)-parseInt(b); }).map(function(k){ return val[k]; });
+}
+
+// Constrói o deck compartilhado (mesma ordem para todos os jogadores)
+function buildSharedDeck() {
+  var deck = [];
+  PAIRS.forEach(function(p) {
+    deck.push({ pairId: p.id, type: 'sit', img: getCardImg(p.id, 'sit') });
+    deck.push({ pairId: p.id, type: 'sol', img: getCardImg(p.id, 'sol') });
+  });
+  return shuffleDeck(deck);
+}
+
+// Inicializa gameState no Firebase antes de começar a partida
+async function initGameState(code, deck, turnOrder, playerNames, timerTotal) {
+  if (!firebaseReady) return;
+  var scores = {}, names = {}, matchedBy = {};
+  turnOrder.forEach(function(k, i) {
+    scores[k] = 0;
+    names[k] = playerNames[i] || ('Jogador ' + (i + 1));
+    matchedBy[k] = 0;
+  });
+  try {
+    await db.ref('salas/' + code + '/gameState').set({
+      phase: 'memorization',
+      deck: deck,
+      flippedCards: [],
+      matchedCards: {},
+      currentTurnKey: turnOrder[0],
+      turnOrder: turnOrder,
+      turnIndex: 0,
+      scores: scores,
+      playerNames: names,
+      matchedBy: matchedBy,
+      matchedCount: 0,
+      memorizeStart: Date.now(),
+      timerStart: 0,
+      timerTotal: timerTotal,
+      pendingQuiz: null
+    });
+  } catch(e) { console.error('initGameState error:', e); }
+}
+
+// Escuta gameState em tempo real
+function listenGameState(code, cb) {
+  if (!firebaseReady) return;
+  db.ref('salas/' + code + '/gameState').on('value', function(snap) { cb(snap.val()); });
+}
+
+// Para de escutar gameState
+function stopListeningGameState(code) {
+  if (firebaseReady) db.ref('salas/' + code + '/gameState').off('value');
+}
+
+// Atualiza campos do gameState (suporta paths aninhados com '/')
+async function gsUpdate(code, changes) {
+  if (!firebaseReady) return;
+  try {
+    await db.ref('salas/' + code + '/gameState').update(changes);
+  } catch(e) { console.error('gsUpdate error:', e); }
+}
+
+// ── Modo Simultâneo (cada jogador tem seu próprio board) ──────────────────────
+
+// Cria gameState compartilhado (deck + timer + fase) + board vazio por jogador
+async function initGameStateV2(code, playerKeys, timerTotal) {
+  if (!firebaseReady) return;
+  var boards = {};
+  playerKeys.forEach(function(k) {
+    boards[k] = { deck: buildSharedDeck(), flipped: [], matched: {}, score: 0, matchedCount: 0, finished: false, finishedAt: 0 };
+  });
+  try {
+    await db.ref('salas/' + code + '/gameState').set({
+      phase: 'memorization',
+      memorizeStart: Date.now(),
+      timerStart: 0,
+      timerTotal: timerTotal
+    });
+    await db.ref('salas/' + code + '/boards').set(boards);
+  } catch(e) { console.error('initGameStateV2 error:', e); }
+}
+
+// Escuta todos os boards em tempo real
+function listenAllBoards(code, cb) {
+  if (!firebaseReady) return;
+  db.ref('salas/' + code + '/boards').on('value', function(snap) { cb(snap.val()); });
+}
+
+// Atualiza o board do próprio jogador (suporta paths aninhados ex: 'matched/3')
+async function updateMyBoard(code, playerKey, changes) {
+  if (!firebaseReady) return;
+  try {
+    await db.ref('salas/' + code + '/boards/' + playerKey).update(changes);
+  } catch(e) { console.error('updateMyBoard error:', e); }
+}
 
 // ============================================
 // MODAL PERSONALIZADO
@@ -480,23 +587,23 @@ function renderRanking(podiumId, listId, players) {
     podEl.innerHTML = html;
   }
 
-  // SEMPRE renderiza a área branca da lista
+  // Lista rolável com todos os jogadores abaixo do pódio
   if (listEl) {
-    var html2 = '';
-    html2 += '<div style="width:375px;height:160px;left:32px;top:516px;position:absolute;background:white;border-bottom-right-radius:12px;border-bottom-left-radius:12px"></div>';
-
-    var count = Math.max(p.length - 3, 0);
-    if (count > 0) {
-      for (var i = 3; i < Math.min(p.length, 8); i++) {
-        var y = 533 + (i - 3) * 27;
-        html2 += '<div style="left:56px;top:' + (y+2) + 'px;position:absolute;color:#FF0000;font-size:20px;font-family:Poppins;font-weight:700">' + (i+1) + '</div>';
-        html2 += '<div style="left:80px;top:' + y + 'px;position:absolute;color:#026F18;font-size:14px;font-family:Poppins;font-weight:500;line-height:25px">' + p[i].name + '</div>';
-        html2 += '<div style="left:320px;top:' + (y+5) + 'px;position:absolute;color:#026F18;font-size:14px;font-family:Poppins;font-weight:700">' + p[i].score + ' pts</div>';
-      }
+    var extras = p.slice(3);
+    var html2 = '<div style="position:absolute;left:32px;top:516px;width:375px;max-height:400px;overflow-y:auto;background:white;border-bottom-right-radius:12px;border-bottom-left-radius:12px">';
+    if (extras.length === 0) {
+      html2 += '<div style="padding:18px;text-align:center;color:rgba(2,111,24,0.3);font-size:13px;font-family:Poppins;font-weight:400">Mais jogadores aparecerão aqui</div>';
     } else {
-      // Sem jogadores 4+ — mensagem sutil
-      html2 += '<div style="left:32px;top:530px;position:absolute;width:375px;text-align:center;color:rgba(2,111,24,0.3);font-size:13px;font-family:Poppins;font-weight:400">Mais jogadores aparecerão aqui</div>';
+      extras.forEach(function(player, idx) {
+        html2 +=
+          '<div style="display:flex;align-items:center;padding:6px 16px;border-bottom:1px solid rgba(2,111,24,0.07)">' +
+            '<span style="color:#FF0000;font-size:18px;font-family:Poppins;font-weight:700;min-width:36px">' + (idx + 4) + '</span>' +
+            '<span style="color:#026F18;font-size:14px;font-family:Poppins;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">' + player.name + '</span>' +
+            '<span style="color:#026F18;font-size:14px;font-family:Poppins;font-weight:700;white-space:nowrap">' + player.score + ' pts</span>' +
+          '</div>';
+      });
     }
+    html2 += '</div>';
     listEl.innerHTML = html2;
   }
 }

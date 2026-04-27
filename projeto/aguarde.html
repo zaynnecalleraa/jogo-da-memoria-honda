@@ -41,16 +41,13 @@ var myMode = state.mode || 'memory';
 var myName = state.playerName || '';
 
 function irParaJogo() {
-  goTo(myMode === 'quizonly' ? 'quiz.html' : 'jogo.html');
+  if (myMode === 'quizonly') goTo('quiz.html');
+  else if (tvMode) goTo('jogador.html');
+  else goTo('jogo.html');
 }
 
 escutarInicioPartida(code, function() {
-  if (tvMode) {
-    document.getElementById('subtitle').innerHTML = 'Aguardando<br>a sua vez...';
-    escutarVezTV(code, myName, irParaJogo);
-  } else {
-    irParaJogo();
-  }
+  irParaJogo();
 });
 </script>
 </body>
