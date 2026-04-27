@@ -35,12 +35,24 @@
   /* ── Board panels ───────────────────────── */
   .board-panel {
     flex:1;
+    position:relative;
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     padding:18px 24px;
     background:rgba(0,0,0,0.22);
     border-radius:16px;
     gap:10px;
     min-width:0;
+    overflow:hidden;
+  }
+
+  .quiz-overlay {
+    position:absolute; inset:0;
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    background:rgba(1,35,7,0.96);
+    border-radius:16px;
+    padding:clamp(12px,2vh,24px) clamp(14px,2vw,28px);
+    gap:8px;
+    overflow-y:auto;
   }
 
   .player-name {
@@ -183,6 +195,7 @@
       <span id="scoreL" style="color:#FFD700;font-size:clamp(16px,2.2vh,28px);font-weight:800">0 pts</span>
       <span id="pairsL" style="color:rgba(255,255,255,0.5);font-size:clamp(13px,1.7vh,22px)">0/8</span>
     </div>
+    <div id="quizL" class="quiz-overlay"></div>
   </div>
 
   <!-- Centro: Navegação -->
@@ -200,6 +213,7 @@
       <span id="scoreR" style="color:#FFD700;font-size:clamp(16px,2.2vh,28px);font-weight:800">0 pts</span>
       <span id="pairsR" style="color:rgba(255,255,255,0.5);font-size:clamp(13px,1.7vh,22px)">0/8</span>
     </div>
+    <div id="quizR" class="quiz-overlay"></div>
   </div>
 </div>
 
@@ -207,10 +221,6 @@
 <div id="rankBar">
   <span style="color:rgba(255,255,255,0.4);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;margin-right:6px">RANKING</span>
   <div id="rankItems" style="display:flex;gap:12px;overflow:hidden;flex:1;align-items:center"></div>
-</div>
-
-<!-- ── Quiz Panel Overlay ──────────────────────────────────────────── -->
-<div id="quizPanel" style="position:fixed;inset:0;z-index:30;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.78)">
 </div>
 
 <!-- ── Overlay Memorização ─────────────────────────────────────────── -->
@@ -365,6 +375,7 @@ function renderBoards() {
   var keys = getViewedKeys();
   updateBoardPanel('L', keys[0]);
   updateBoardPanel('R', keys[1]);
+  renderQuizPanel();
 }
 
 // ── Ranking bar ────────────────────────────────────────────────────────
@@ -441,32 +452,15 @@ function showFinished() {
 }
 
 // ── Quiz panel ─────────────────────────────────────────────────────
-function renderQuizPanel() {
-  var panel = document.getElementById('quizPanel');
+function renderQuizSide(side, playerKey) {
+  var panel = document.getElementById('quiz' + side);
+  if (!panel) return;
 
-  // Find active quiz: prefer a visible player, then any player
-  var activeKey = null;
-  var viewed = getViewedKeys();
-  for (var vi = 0; vi < viewed.length; vi++) {
-    var vk = viewed[vi];
-    if (vk && allBoards[vk] && allBoards[vk].quiz && allBoards[vk].quiz.active) {
-      activeKey = vk; break;
-    }
-  }
-  if (!activeKey) {
-    for (var pi = 0; pi < playerOrder.length; pi++) {
-      var pk = playerOrder[pi];
-      if (allBoards[pk] && allBoards[pk].quiz && allBoards[pk].quiz.active) {
-        activeKey = pk; break;
-      }
-    }
-  }
+  if (!playerKey || !allBoards[playerKey]) { panel.style.display = 'none'; return; }
+  var quiz = allBoards[playerKey].quiz;
+  if (!quiz || !quiz.active) { panel.style.display = 'none'; return; }
 
-  if (!activeKey) { panel.style.display = 'none'; return; }
-
-  var quiz = allBoards[activeKey].quiz;
-  var pName = (allPlayers[activeKey] || {}).name || '?';
-  var answeredIdx = (quiz.answeredIdx !== undefined && quiz.answeredIdx !== null && quiz.answeredIdx !== -1)
+  var answeredIdx = (quiz.answeredIdx !== undefined && quiz.answeredIdx !== null && Number(quiz.answeredIdx) !== -1)
     ? Number(quiz.answeredIdx) : -1;
   var correctIdx = Number(quiz.correctIdx);
   var opts = toArray(quiz.opts || []);
@@ -480,9 +474,10 @@ function renderQuizPanel() {
       else bg = 'rgba(2,111,24,0.35)';
     }
     optsHtml +=
-      '<div style="background:' + bg + ';border-radius:6px;padding:10px 16px;color:white;' +
-      'font-size:clamp(13px,1.8vh,18px);font-family:Poppins;font-weight:500;line-height:1.4;' +
-      'overflow-wrap:break-word;word-break:break-word">' +
+      '<div style="width:100%;background:' + bg + ';border-radius:6px;' +
+      'padding:clamp(6px,1vh,10px) clamp(10px,1.2vw,14px);color:white;' +
+      'font-size:clamp(11px,1.5vh,16px);font-family:Poppins;font-weight:500;line-height:1.4;' +
+      'overflow-wrap:break-word;word-break:break-word;box-sizing:border-box">' +
       String.fromCharCode(65 + i) + ') ' + escHtml(opt) + '</div>';
   });
 
@@ -490,23 +485,25 @@ function renderQuizPanel() {
   if (answeredIdx >= 0) {
     var ok = answeredIdx === correctIdx;
     feedback = '<div style="color:' + (ok ? '#4ade80' : '#f87171') +
-      ';font-size:clamp(14px,2vh,20px);font-weight:700;text-align:center;margin-top:12px">' +
+      ';font-size:clamp(13px,1.8vh,20px);font-weight:700;text-align:center;margin-top:4px">' +
       (ok ? '✅ Correto!' : '❌ Errado!') + '</div>';
   }
 
   panel.innerHTML =
-    '<div style="background:rgba(1,40,8,0.97);border-radius:20px;' +
-    'padding:clamp(20px,3vh,40px) clamp(28px,4vw,60px);' +
-    'max-width:min(640px,80vw);width:100%;box-shadow:0 20px 80px rgba(0,0,0,0.8)">' +
-      '<div style="color:rgba(255,255,255,0.55);font-size:clamp(11px,1.5vh,14px);font-weight:600;' +
-      'letter-spacing:2px;text-transform:uppercase;margin-bottom:8px">🎯 QUIZ — ' + escHtml(pName) + '</div>' +
-      '<div style="color:white;font-size:clamp(15px,2.2vh,24px);font-weight:700;text-align:center;' +
-      'margin-bottom:16px;line-height:1.4">' + escHtml(quiz.q || '') + '</div>' +
-      '<div style="display:flex;flex-direction:column;gap:8px">' + optsHtml + '</div>' +
-      feedback +
-    '</div>';
+    '<div style="color:rgba(255,255,255,0.5);font-size:clamp(10px,1.3vh,13px);font-weight:600;' +
+    'letter-spacing:2px;text-transform:uppercase;align-self:flex-start">🎯 QUIZ</div>' +
+    '<div style="color:white;font-size:clamp(13px,1.9vh,20px);font-weight:700;text-align:center;' +
+    'line-height:1.4;width:100%">' + escHtml(quiz.q || '') + '</div>' +
+    '<div style="display:flex;flex-direction:column;gap:6px;width:100%">' + optsHtml + '</div>' +
+    feedback;
 
   panel.style.display = 'flex';
+}
+
+function renderQuizPanel() {
+  var keys = getViewedKeys();
+  renderQuizSide('L', keys[0]);
+  renderQuizSide('R', keys[1]);
 }
 
 // ── Firebase listeners ─────────────────────────────────────────────────
