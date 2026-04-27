@@ -57,9 +57,19 @@ var correctCount = 0;
 var timerId;
 var answered = false;
 
-// Embaralha as 8 perguntas
+var playerName = sessionStorage.getItem('hondaCurrentPlayerName') || state.playerName || 'Jogador';
+var playerKey  = sessionStorage.getItem('hondaCurrentPlayerKey')  || state.playerKey  || null;
+
+// Embaralha as 8 perguntas; embaralha as alternativas de cada uma
 var questions = shuffleDeck(PAIRS.map(function(p) {
-  return { q: p.quiz.q, opts: p.quiz.opts, c: p.quiz.c, exp: p.quiz.exp };
+  var opts = p.quiz.opts.map(function(text, i) { return { text: text, origIdx: i }; });
+  for (var si = opts.length - 1; si > 0; si--) {
+    var sj = Math.floor(Math.random() * (si + 1));
+    var tmp = opts[si]; opts[si] = opts[sj]; opts[sj] = tmp;
+  }
+  var newCorrect = 0;
+  for (var ci = 0; ci < opts.length; ci++) { if (opts[ci].origIdx === p.quiz.c) { newCorrect = ci; break; } }
+  return { q: p.quiz.q, opts: opts.map(function(o) { return o.text; }), c: newCorrect, exp: p.quiz.exp };
 }));
 
 function updateTimerDisplay() {
@@ -163,26 +173,27 @@ async function endQuiz() {
   var timeBonus = Math.floor(timeLeft / 10) * 20;
   score += timeBonus;
 
-  var playerName = state.playerName || 'Jogador';
   var roomCode = state.code || 'LOCAL';
-  var playerKey = state.playerKey || null;
-
   var salaPlayers = await addToSalaRanking(roomCode, playerName, score);
   await addToGeralRanking(playerName, score);
 
-  var pos = salaPlayers.findIndex(function(p) { return p.name === playerName && p.score === score; }) + 1;
+  var pos = 1;
+  for (var pi = 0; pi < salaPlayers.length; pi++) {
+    if (salaPlayers[pi].name === playerName && salaPlayers[pi].score === score) { pos = pi + 1; break; }
+  }
 
   if (tvMode && playerKey) {
     await markPlayerPlayed(roomCode, playerKey, score);
   }
 
-  saveState({
-    finalPos: pos,
-    finalScore: score,
-    finalTime: '—',
-    finalPairs: correctCount + '/8',
-    finalRoomCode: roomCode
-  });
+  var finalPairs = correctCount + '/8';
+  sessionStorage.setItem('hondaFinalPos',      String(pos));
+  sessionStorage.setItem('hondaFinalScore',    String(score));
+  sessionStorage.setItem('hondaFinalTime',     '—');
+  sessionStorage.setItem('hondaFinalPairs',    finalPairs);
+  sessionStorage.setItem('hondaFinalRoomCode', roomCode);
+
+  saveState({ finalPos: pos, finalScore: score, finalTime: '—', finalPairs: finalPairs, finalRoomCode: roomCode });
 
   goTo(tvMode ? 'modo-tv.html' : 'parabens.html');
 }

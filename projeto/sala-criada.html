@@ -39,6 +39,7 @@ var state = getState();
 var code = state.code || 'XXXXX';
 var willPlay = state.willPlay !== false;
 var tvMode = state.tvMode || false;
+var myMode = state.mode || 'memory';
 
 // Render code boxes
 var boxesEl = document.getElementById('codeBoxes');
@@ -110,14 +111,16 @@ async function iniciar() {
     var playerKeys = entries.map(function(e) { return e.key; });
     var timeTotal = state.timeTotal || 120;
 
-    // Inicializa gameState + boards com decks individuais ANTES de sinalizar início
-    await initGameStateV2(code, playerKeys, timeTotal);
-
-    // Sinaliza início — dispara os listeners em aguarde.html
-    await iniciarPartidaFirebase(code);
-
-    // Anfitrião vai para o telão
-    goTo('telao.html');
+    if (myMode === 'quizonly') {
+      // Quiz-only: sem boards de memória — anfitrião gerencia turnos em modo-tv.html
+      await iniciarPartidaFirebase(code);
+      goTo('modo-tv.html');
+    } else {
+      // Memória / memória+quiz: cria boards individuais, anfitrião vê telão
+      await initGameStateV2(code, playerKeys, timeTotal);
+      await iniciarPartidaFirebase(code);
+      goTo('telao.html');
+    }
   } else if (willPlay) {
     await iniciarPartidaFirebase(code);
     goTo('jogo.html');
