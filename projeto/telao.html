@@ -137,12 +137,6 @@
   .rank-item.done { background:rgba(2,111,24,0.38) }
 
   /* ── Overlays ─────────────────────────────── */
-  #memOverlay {
-    position:fixed; inset:0; z-index:20;
-    display:none; align-items:center; justify-content:center;
-    background:rgba(0,60,10,0.88);
-  }
-
   #finishOverlay {
     position:fixed; inset:0;
     background:rgba(0,0,0,0.93);
@@ -221,15 +215,6 @@
 <div id="rankBar">
   <span style="color:rgba(255,255,255,0.4);font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;white-space:nowrap;margin-right:6px">RANKING</span>
   <div id="rankItems" style="display:flex;gap:12px;overflow:hidden;flex:1;align-items:center"></div>
-</div>
-
-<!-- ── Overlay Memorização ─────────────────────────────────────────── -->
-<div id="memOverlay">
-  <div style="background:rgba(1,55,12,0.98);border-radius:24px;padding:clamp(32px,5vh,64px) clamp(60px,8vw,120px);text-align:center;box-shadow:0 20px 80px rgba(0,0,0,0.7)">
-    <div style="color:white;font-size:clamp(24px,3.5vh,42px);font-weight:700;letter-spacing:3px;margin-bottom:4px">MEMORIZE!</div>
-    <div id="memCount" style="color:#FFD700;font-size:clamp(120px,18vw,260px);font-weight:800;line-height:1">5</div>
-    <div style="color:rgba(255,255,255,0.55);font-size:clamp(14px,1.8vh,20px);font-weight:400;margin-top:8px">Memorize os pares antes do jogo começar</div>
-  </div>
 </div>
 
 <!-- ── Overlay Fim de Jogo ─────────────────────────────────────────── -->
@@ -405,15 +390,14 @@ function renderRankBar() {
 // ── Memorização ────────────────────────────────────────────────────────
 function startMemorizationCountdown(gs) {
   var memStart = gs.memorizeStart || Date.now();
+  var memDuration = (gs.memorizeTime || 5) * 1000;
   clearTimeout(memTimeout);
-  document.getElementById('memOverlay').style.display = 'flex';
-  document.getElementById('phaseLabel').textContent = 'MEMORIZAÇÃO';
+  document.getElementById('phaseLabel').textContent = 'MEMORIZE!';
 
   function tick() {
-    var remaining = Math.max(0, Math.ceil((5000 - (Date.now() - memStart)) / 1000));
-    document.getElementById('memCount').textContent = remaining || 1;
+    var remaining = Math.max(0, Math.ceil((memDuration - (Date.now() - memStart)) / 1000));
+    document.getElementById('timer').textContent = String(remaining).padStart(2, '0') + 's';
     if (remaining <= 0) {
-      document.getElementById('memOverlay').style.display = 'none';
       document.getElementById('phaseLabel').textContent = 'EM JOGO';
       gsUpdate(code, { phase: 'playing', timerStart: Date.now() });
       startTimerTick();
@@ -531,7 +515,6 @@ listenGameState(code, function(gs) {
     if (phase === 'memorization') {
       startMemorizationCountdown(gs);
     } else if (phase === 'playing') {
-      document.getElementById('memOverlay').style.display = 'none';
       clearTimeout(memTimeout);
       document.getElementById('phaseLabel').textContent = 'EM JOGO';
       startTimerTick();

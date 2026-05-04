@@ -54,6 +54,15 @@
     Acerte o maior número de pares no menor tempo possível para vencer! Encontre as combinações corretas com rapidez e atenção para conquistar a melhor pontuação.
   </div>
 
+  <!-- Banner de memorização -->
+  <div id="memBanner" style="position:absolute;left:0;top:228px;width:440px;z-index:20;display:none;align-items:center;justify-content:center;pointer-events:none">
+    <div style="background:rgba(2,80,12,0.93);border-radius:10px;padding:6px 24px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
+      <span style="color:white;font-size:16px;font-family:Poppins;font-weight:700;letter-spacing:1px">MEMORIZE!</span>
+      <span id="memCount" style="color:#FFD700;font-size:22px;font-family:Poppins;font-weight:800;min-width:28px;text-align:center">10</span>
+      <span style="color:rgba(255,255,255,0.6);font-size:14px;font-family:Poppins">seg</span>
+    </div>
+  </div>
+
   <!-- Grid de cartas — 4x4 -->
   <div id="grid"></div>
 
@@ -85,9 +94,12 @@ let score = 0;
 let combo = 0;
 let flipped = [];
 let processing = false;
+let memorizing = false;
 let timerId;
+let memTimerId;
 let cards = [];
 let quizCorrect = 0;
+const MEMORIZE_SECS = (MODE !== 'quizonly') ? (state.memorizeTime || 0) : 0;
 
 // Grid positions from Figma — 4 columns, 4 rows
 const positions = [];
@@ -126,7 +138,7 @@ function renderGrid() {
 }
 
 function flip(idx) {
-  if (processing) return;
+  if (processing || memorizing) return;
   const el = document.querySelectorAll('.card')[idx];
   if (el.classList.contains('flipped') || el.classList.contains('matched')) return;
   if (flipped.length >= 2) return;
@@ -303,15 +315,48 @@ async function endGame() {
 function exitGame() {
   showConfirm('Sair da partida?', 'Seu progresso será perdido.', function() {
     clearInterval(timerId);
+    clearInterval(memTimerId);
     goTo('index.html');
   });
+}
+
+function showAllCards() {
+  document.querySelectorAll('.card').forEach(function(el) { el.classList.add('flipped'); });
+}
+function hideAllCards() {
+  document.querySelectorAll('.card').forEach(function(el) { el.classList.remove('flipped'); });
+}
+
+function startMemorization(secs) {
+  memorizing = true;
+  showAllCards();
+  var banner = document.getElementById('memBanner');
+  banner.style.display = 'flex';
+  var remaining = secs;
+  document.getElementById('memCount').textContent = remaining;
+
+  memTimerId = setInterval(function() {
+    remaining--;
+    document.getElementById('memCount').textContent = remaining;
+    if (remaining <= 0) {
+      clearInterval(memTimerId);
+      banner.style.display = 'none';
+      hideAllCards();
+      memorizing = false;
+      startTimer();
+    }
+  }, 1000);
 }
 
 // INIT
 cards = buildDeck();
 renderGrid();
 updateUI();
-startTimer();
+if (MEMORIZE_SECS > 0) {
+  startMemorization(MEMORIZE_SECS);
+} else {
+  startTimer();
+}
 </script>
 </body>
 </html>

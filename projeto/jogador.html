@@ -67,11 +67,12 @@
     <img id="feedbackImg" src="" alt="">
   </div>
 
-  <!-- Overlay de memorização -->
-  <div id="memOverlay" style="position:absolute;left:0;top:0;width:440px;height:956px;z-index:20;display:none;align-items:center;justify-content:center;pointer-events:none">
-    <div style="background:rgba(2,90,14,0.95);border-radius:16px;padding:24px 44px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.4)">
-      <div style="color:white;font-size:20px;font-family:Poppins;font-weight:700;letter-spacing:1px">MEMORIZE!</div>
-      <div id="memCount" style="color:#FFD700;font-size:80px;font-family:Poppins;font-weight:800;line-height:1">5</div>
+  <!-- Banner de memorização (não bloqueia as cartas) -->
+  <div id="memBanner" style="position:absolute;left:0;top:228px;width:440px;z-index:20;display:none;align-items:center;justify-content:center;pointer-events:none">
+    <div style="background:rgba(2,80,12,0.93);border-radius:10px;padding:6px 24px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
+      <span style="color:white;font-size:16px;font-family:Poppins;font-weight:700;letter-spacing:1px">MEMORIZE!</span>
+      <span id="memCount" style="color:#FFD700;font-size:22px;font-family:Poppins;font-weight:800;min-width:28px;text-align:center">10</span>
+      <span style="color:rgba(255,255,255,0.6);font-size:14px;font-family:Poppins">seg</span>
     </div>
   </div>
 </div>
@@ -354,17 +355,16 @@ function answerQuiz(sel, correct, btn, isLast) {
 // ── Memorização ───────────────────────────────────────────────────────────────
 function startMemorizationCountdown(gs) {
   var memStart = gs.memorizeStart || Date.now();
+  var memDuration = (gs.memorizeTime || 5) * 1000;
   clearTimeout(memTimeout);
-  document.getElementById('memOverlay').style.display = 'flex';
+  document.getElementById('memBanner').style.display = 'flex';
 
-  // Mostra todas as cartas viradas para memorizar
   if (gridBuilt) showAllCardsUp();
 
   function tick() {
-    var remaining = Math.max(0, Math.ceil((5000 - (Date.now() - memStart)) / 1000));
-    document.getElementById('memCount').textContent = remaining || 1;
+    var remaining = Math.max(0, Math.ceil((memDuration - (Date.now() - memStart)) / 1000));
+    document.getElementById('memCount').textContent = remaining;
     if (remaining > 0) memTimeout = setTimeout(tick, 300);
-    // Transição disparada quando telão escreve phase='playing'
   }
   tick();
 }
@@ -440,7 +440,7 @@ listenGameState(code, function(gs) {
     if (phase === 'memorization') {
       startMemorizationCountdown(gs);
     } else if (phase === 'playing') {
-      document.getElementById('memOverlay').style.display = 'none';
+      document.getElementById('memBanner').style.display = 'none';
       clearTimeout(memTimeout);
       if (gridBuilt) hideAllCardsUp();
       setCardsClickable(true);

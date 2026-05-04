@@ -188,6 +188,7 @@ async function criarSalaFirebase(code, config) {
       timeTotal: config.timeTotal || 120,
       maxPlayers: config.maxPlayers || null,
       tvMode: config.tvMode || false,
+      memorizeTime: config.memorizeTime || 0,
       started: false,
       createdAt: Date.now()
     });
@@ -216,6 +217,7 @@ async function entrarSalaFirebase(code, playerName) {
       timeLeft: salaData.timeTotal || 120,
       timeTotal: salaData.timeTotal || 120,
       tvMode: salaData.tvMode || false,
+      memorizeTime: salaData.memorizeTime || 0,
       playerKey: ref.key
     });
     // sessionStorage is tab-isolated — prevents cross-tab key contamination
@@ -418,17 +420,19 @@ async function gsUpdate(code, changes) {
 // ── Modo Simultâneo (cada jogador tem seu próprio board) ──────────────────────
 
 // Cria gameState compartilhado (deck + timer + fase) + board vazio por jogador
-async function initGameStateV2(code, playerKeys, timerTotal) {
+async function initGameStateV2(code, playerKeys, timerTotal, memorizeTime) {
   if (!firebaseReady) return;
   var boards = {};
   playerKeys.forEach(function(k) {
     boards[k] = { deck: buildSharedDeck(), flipped: [], matched: {}, score: 0, matchedCount: 0, finished: false, finishedAt: 0 };
   });
+  var mt = memorizeTime || 0;
   try {
     await db.ref('salas/' + code + '/gameState').set({
-      phase: 'memorization',
-      memorizeStart: Date.now(),
-      timerStart: 0,
+      phase: mt > 0 ? 'memorization' : 'playing',
+      memorizeStart: mt > 0 ? Date.now() : 0,
+      memorizeTime: mt,
+      timerStart: mt > 0 ? 0 : Date.now(),
       timerTotal: timerTotal
     });
     await db.ref('salas/' + code + '/boards').set(boards);

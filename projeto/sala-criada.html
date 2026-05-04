@@ -40,6 +40,7 @@ var code = state.code || 'XXXXX';
 var willPlay = state.willPlay !== false;
 var tvMode = state.tvMode || false;
 var myMode = state.mode || 'memory';
+var memorizeTime = state.memorizeTime || 0;
 
 // Render code boxes
 var boxesEl = document.getElementById('codeBoxes');
@@ -117,7 +118,7 @@ async function iniciar() {
       goTo('modo-tv.html');
     } else {
       // Memória / memória+quiz: cria boards individuais, anfitrião vê telão
-      await initGameStateV2(code, playerKeys, timeTotal);
+      await initGameStateV2(code, playerKeys, timeTotal, memorizeTime);
       await iniciarPartidaFirebase(code);
       goTo('telao.html');
     }
