@@ -38,19 +38,16 @@ a { text-decoration:none; color:inherit; }
      --bg-home-desk   → desktop  1440 × 900 px
    Edite as urls abaixo.
    ============================================================ */
-:root {
-  --bg-home:        none;
-  --bg-home-tablet: none;
-  --bg-home-desk:   none;
-}
 body.page-home { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:auto; display:block; }
 .home-screen {
   width:100%; min-height:100vh;
+  background-image: url('../assets/home-cll.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
   padding:40px 24px;
 }
-.home-logo { width:80px; height:80px; margin-bottom:8px; }
-.home-logo img { width:100%; height:100%; object-fit:contain; }
 .home-buttons { display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; max-width:480px; }
 .home-buttons-row { display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; }
 .btn-home-main {
@@ -64,16 +61,14 @@ body.page-home { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:au
   font-family:'Poppins',sans-serif; font-weight:600; font-size:clamp(16px,5vw,22px); color:#FF0000; padding:0 16px; text-align:center;
 }
 @media(min-width:768px) {
-  .home-screen { padding:40px 40px; }
-  .home-logo { width:96px; height:96px; }
+  .home-screen { background-image: url('../assets/home-pc.png'); padding:40px 40px; }
   .home-buttons { max-width:620px; gap:20px; }
   .home-buttons-row { flex-direction:row; justify-content:center; gap:20px; }
   .btn-home-main { flex:1; max-width:240px; min-height:64px; font-size:28px; border-radius:12px; }
   .btn-home-outline { max-width:300px; min-height:58px; font-size:20px; border-radius:12px; }
 }
 @media(min-width:1024px) {
-  .home-screen { padding:40px 60px; }
-  .home-logo { width:110px; height:110px; }
+  .home-screen { background-image: url('../assets/home-pc.png'); padding:40px 60px; }
   .home-buttons { max-width:740px; gap:24px; }
   .home-buttons-row { gap:28px; }
   .btn-home-main { max-width:260px; min-height:70px; font-size:32px; }
