@@ -319,6 +319,8 @@ function encerrarTurno() {
     document.getElementById('switchErrors').textContent  = p.errors;
     document.getElementById('switchTime').textContent    = p.timeUsed + 's';
     document.getElementById('switchNextNome').textContent = G.p2.name;
+    var btnNomeEl = document.getElementById('switchBtnNome');
+    if (btnNomeEl) btnNomeEl.textContent = G.p2.name;
     showScreen('screen-switch');
   } else {
     mostrarResultado();

@@ -103,7 +103,7 @@ function clearState() {
 // ============================================
 async function addToGeralRanking(name, score) {
   if (!firebaseReady) { console.error('Firebase não conectado!'); return; }
-  var entry = { name: name, score: score, date: new Date().toLocaleDateString('pt-BR'), ts: Date.now() };
+  var entry = { name: name, score: score, date: new Date().toLocaleDateString('pt-BR'), ts: Date.now(), tipoJogo: 'seguranca' };
   try {
     await db.ref('rankingGeral').push(entry);
     console.log('✅ Ranking geral salvo:', name, score);
@@ -117,7 +117,11 @@ async function getGeralRanking() {
   try {
     var snap = await db.ref('rankingGeral').orderByChild('score').limitToLast(500).once('value');
     var arr = [];
-    snap.forEach(function(c) { arr.push(c.val()); });
+    snap.forEach(function(c) {
+      var v = c.val();
+      /* inclui entradas antigas (sem tipoJogo) e entradas segurança */
+      if (!v.tipoJogo || v.tipoJogo === 'seguranca') arr.push(v);
+    });
     arr.sort(function(a, b) { return b.score - a.score; });
     return arr;
   } catch(e) {

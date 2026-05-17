@@ -39,17 +39,18 @@ a { text-decoration:none; color:inherit; }
    Edite as urls abaixo.
    ============================================================ */
 :root {
-  --bg-home:        url('../assets/bg-home.png');
-  --bg-home-tablet: url('../assets/bg-home.png'); /* → bg-home-tablet.png */
-  --bg-home-desk:   url('../assets/bg-home.png'); /* → bg-home-desktop.png */
+  --bg-home:        none;
+  --bg-home-tablet: none;
+  --bg-home-desk:   none;
 }
 body.page-home { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:auto; display:block; }
 .home-screen {
   width:100%; min-height:100vh;
-  background-image:var(--bg-home); background-size:cover; background-position:center top; background-repeat:no-repeat;
-  display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
-  padding:0 24px max(32px, 8vh);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:40px 24px;
 }
+.home-logo { width:80px; height:80px; margin-bottom:8px; }
+.home-logo img { width:100%; height:100%; object-fit:contain; }
 .home-buttons { display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; max-width:480px; }
 .home-buttons-row { display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; }
 .btn-home-main {
@@ -63,14 +64,16 @@ body.page-home { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:au
   font-family:'Poppins',sans-serif; font-weight:600; font-size:clamp(16px,5vw,22px); color:#FF0000; padding:0 16px; text-align:center;
 }
 @media(min-width:768px) {
-  .home-screen { background-image:var(--bg-home-tablet); padding:0 40px max(48px,6vh); }
+  .home-screen { padding:40px 40px; }
+  .home-logo { width:96px; height:96px; }
   .home-buttons { max-width:620px; gap:20px; }
   .home-buttons-row { flex-direction:row; justify-content:center; gap:20px; }
   .btn-home-main { flex:1; max-width:240px; min-height:64px; font-size:28px; border-radius:12px; }
   .btn-home-outline { max-width:300px; min-height:58px; font-size:20px; border-radius:12px; }
 }
 @media(min-width:1024px) {
-  .home-screen { background-image:var(--bg-home-desk); padding:0 60px max(60px,7vh); }
+  .home-screen { padding:40px 60px; }
+  .home-logo { width:110px; height:110px; }
   .home-buttons { max-width:740px; gap:24px; }
   .home-buttons-row { gap:28px; }
   .btn-home-main { max-width:260px; min-height:70px; font-size:32px; }
@@ -87,9 +90,9 @@ body.page-home { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:au
      --bg-menu-desk   → desktop  1440 × 900 px
    ============================================================ */
 :root {
-  --bg-menu:        url('../assets/fundo.png');
-  --bg-menu-tablet: url('../assets/fundo.png'); /* → fundo-tablet.png */
-  --bg-menu-desk:   url('../assets/fundo.png'); /* → fundo-desktop.png */
+  --bg-menu:        none;
+  --bg-menu-tablet: none;
+  --bg-menu-desk:   none;
 }
 body.page-menu { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:auto; display:block; }
 .menu-screen {
@@ -108,14 +111,14 @@ body.page-menu { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:au
 .menu-card img { width:72px; height:72px; object-fit:contain; flex-shrink:0; }
 .menu-card-label { color:#026F18; font-size:clamp(18px,4.5vw,24px); font-family:'Poppins',sans-serif; font-weight:500; line-height:1.3; }
 @media(min-width:768px) {
-  .menu-screen { background-image:var(--bg-menu-tablet); padding:100px 40px 60px; }
+  .menu-screen { padding:100px 40px 60px; }
   .menu-logo { width:70px; height:71px; margin-bottom:24px; }
   .menu-cards { flex-direction:row; max-width:700px; gap:24px; }
   .menu-card { flex:1; flex-direction:column; justify-content:center; padding:32px 20px; text-align:center; min-height:180px; gap:16px; }
   .menu-card img { width:88px; height:88px; }
 }
 @media(min-width:1024px) {
-  .menu-screen { background-image:var(--bg-menu-desk); padding:120px 60px 80px; }
+  .menu-screen { padding:120px 60px 80px; }
   .menu-cards { max-width:840px; gap:32px; }
   .menu-card { min-height:200px; padding:40px 28px; }
   .menu-card img { width:100px; height:100px; }
@@ -131,9 +134,9 @@ body.page-menu { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:au
      --bg-fundo-desk   → desktop  1440 × 900 px
    ============================================================ */
 :root {
-  --bg-fundo:        url('../assets/fundo.png');
-  --bg-fundo-tablet: url('../assets/fundo.png'); /* → fundo-tablet.png */
-  --bg-fundo-desk:   url('../assets/fundo.png'); /* → fundo-desktop.png */
+  --bg-fundo:        none;
+  --bg-fundo-tablet: none;
+  --bg-fundo-desk:   none;
 }
 
 .page-screen {
@@ -141,8 +144,6 @@ body.page-menu { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:au
   background-image:var(--bg-fundo); background-size:cover; background-position:center top; background-repeat:no-repeat;
   display:flex; flex-direction:column;
 }
-@media(min-width:768px)  { .page-screen { background-image:var(--bg-fundo-tablet); } }
-@media(min-width:1024px) { .page-screen { background-image:var(--bg-fundo-desk); } }
 
 /* Header */
 .page-header { position:relative; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:14px 64px; }

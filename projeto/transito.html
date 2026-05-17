@@ -124,9 +124,9 @@
    TELA JOGO
    ============================================================ */
 .tr-game-wrap {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* HUD */
@@ -204,21 +204,19 @@
   color: #888;
 }
 
-/* container da cena com pontos */
+/* container da cena com pontos —
+   height:auto garante que a imagem aparece inteira sem corte;
+   os ícones ficam presos em % da largura/altura real da imagem */
 .tr-scene-container {
   position: relative;
-  flex: 1;
-  overflow: hidden;
+  width: 100%;
   background: #111;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  line-height: 0; /* evita gap abaixo da imagem */
 }
 
 .tr-scene-img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   display: block;
   user-select: none;
   pointer-events: none;
@@ -715,31 +713,5 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="js/game.js"></script>
 <script src="js/transito.js"></script>
-<script>
-/* sincroniza o nome no botão da tela switch */
-var _origIniciarJogador2 = iniciarJogador2;
-function iniciarJogador2() {
-  _origIniciarJogador2();
-}
-
-/* preenche span do botão quando trocar tela */
-var _origEncerrarTurno = encerrarTurno;
-encerrarTurno = function() {
-  _origEncerrarTurno.apply(this, arguments);
-};
-
-/* atualiza o span do botão de iniciar jogador 2 sempre que necessário */
-document.addEventListener('DOMContentLoaded', function() {});
-
-/* patch: atualiza nome do botão na tela switch */
-var origShowScreen = showScreen;
-showScreen = function(id) {
-  origShowScreen(id);
-  if (id === 'screen-switch') {
-    var el = document.getElementById('switchBtnNome');
-    if (el) el.textContent = G.p2.name;
-  }
-};
-</script>
 </body>
 </html>
