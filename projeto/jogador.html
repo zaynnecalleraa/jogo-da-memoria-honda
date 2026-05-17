@@ -2,78 +2,58 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=440,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Jogando — Semana da Segurança</title>
 <link rel="stylesheet" href="css/style.css">
-<style>
-  .card{position:absolute;width:106px;height:106px;cursor:pointer;perspective:800px}
-  .card-inner{width:100%;height:100%;position:relative;transition:transform .5s cubic-bezier(.4,0,.2,1);transform-style:preserve-3d}
-  .card.flipped .card-inner,.card.matched .card-inner{transform:rotateY(180deg)}
-  .card.matched{pointer-events:none;opacity:.5}
-  .card-face{position:absolute;inset:0;border-radius:8px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
-  .card-front{background:url('assets/card-back.png') center/cover no-repeat #026F18}
-  .card-back{transform:rotateY(180deg)}
-  .card-back img{width:100%;height:100%;object-fit:cover;border-radius:8px}
-
-  .quiz-overlay{position:absolute;inset:0;z-index:50;display:none;align-items:flex-start;justify-content:center;padding-top:160px}
-  .quiz-overlay.active{display:flex}
-  .quiz-bg{position:absolute;inset:0;background:rgba(0,0,0,0.65);z-index:0}
-
-  .feedback-overlay{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,0.70);display:none;align-items:center;justify-content:center}
-  .feedback-overlay.active{display:flex}
-  .feedback-overlay img{width:153px;height:153px;animation:popIn .4s ease-out}
-  @keyframes popIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
-
-  .combo{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:40;pointer-events:none;font-size:42px;font-weight:800;font-family:Poppins;color:#FFD700;text-shadow:0 0 20px rgba(255,215,0,.6),2px 2px 4px rgba(0,0,0,.5);opacity:0}
-  .combo.show{animation:comboPop .8s ease-out forwards}
-  @keyframes comboPop{0%{transform:translate(-50%,-50%) scale(.5);opacity:0}30%{transform:translate(-50%,-50%) scale(1.3);opacity:1}100%{transform:translate(-50%,-60%) scale(1);opacity:0}}
-</style>
 </head>
 <body>
-<div class="frame" id="frame">
-  <img class="bg" src="assets/fundo.png" alt="">
-  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+<div class="page-screen">
 
-  <!-- Timer -->
-  <div style="width:98px;height:31px;left:94px;top:159px;position:absolute;background:white;border-radius:3px;display:flex;align-items:center;gap:4px;padding:0 8px">
-    <img src="assets/icon-clock.png" alt="" style="width:22px;height:22px" onerror="this.outerHTML='⏱️'">
-    <span id="timer" style="color:#026F18;font-size:20px;font-family:Poppins;font-weight:500;line-height:25px">02:00</span>
-  </div>
+  <header class="page-header">
+    <div class="page-logo"><img src="assets/logo-honda.png" alt="Honda"></div>
+  </header>
 
-  <!-- Pares -->
-  <div style="width:120px;height:31px;left:225px;top:159px;position:absolute;background:white;border-radius:3px;display:flex;align-items:center;padding:0 8px">
-    <span style="color:#026F18;font-size:20px;font-family:Poppins;font-weight:500;line-height:25px">Pares: <span id="pairs">0/8</span></span>
-  </div>
+  <div class="game-screen-wrap">
 
-  <!-- Pontuação -->
-  <div style="left:30px;top:205px;position:absolute;width:380px;text-align:center;color:white;font-size:13px;font-family:Poppins;font-weight:400;line-height:14px;opacity:0.85" id="scoreDisplay">
-    Encontre os pares antes do tempo acabar!
-  </div>
-
-  <!-- Grid de cartas -->
-  <div id="grid"></div>
-
-  <!-- Combo -->
-  <div class="combo" id="combo"></div>
-
-  <!-- Quiz overlay -->
-  <div class="quiz-overlay" id="quizOverlay">
-    <div class="quiz-bg"></div>
-    <div id="quizCard" style="width:363px;background:white;border-radius:8px;padding:24px 20px;position:relative;z-index:1"></div>
-  </div>
-
-  <!-- Feedback overlay -->
-  <div class="feedback-overlay" id="feedbackOverlay">
-    <img id="feedbackImg" src="" alt="">
-  </div>
-
-  <!-- Banner de memorização (não bloqueia as cartas) -->
-  <div id="memBanner" style="position:absolute;left:0;top:228px;width:440px;z-index:20;display:none;align-items:center;justify-content:center;pointer-events:none">
-    <div style="background:rgba(2,80,12,0.93);border-radius:10px;padding:6px 24px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
-      <span style="color:white;font-size:16px;font-family:Poppins;font-weight:700;letter-spacing:1px">MEMORIZE!</span>
-      <span id="memCount" style="color:#FFD700;font-size:22px;font-family:Poppins;font-weight:800;min-width:28px;text-align:center">10</span>
-      <span style="color:rgba(255,255,255,0.6);font-size:14px;font-family:Poppins">seg</span>
+    <!-- Timer + Pares -->
+    <div class="game-top-bar">
+      <div class="game-info-badge">
+        <img src="assets/icon-clock.png" alt="" style="width:22px;height:22px" onerror="this.outerHTML='⏱️'">
+        <span id="timer">02:00</span>
+      </div>
+      <div class="game-info-badge">
+        <span>Pares: <span id="pairs">0/8</span></span>
+      </div>
     </div>
+
+    <!-- Pontuação / instrução -->
+    <p class="game-instruction" id="scoreDisplay">Encontre os pares antes do tempo acabar!</p>
+
+    <!-- Board: grid + memBanner + combo -->
+    <div class="game-board-wrap">
+      <div id="memBanner" style="display:none;align-items:center;justify-content:center">
+        <div style="background:rgba(2,80,12,0.93);border-radius:10px;padding:6px 24px;display:flex;align-items:center;gap:12px;box-shadow:0 4px 16px rgba(0,0,0,0.4)">
+          <span style="color:white;font-size:16px;font-family:Poppins;font-weight:700;letter-spacing:1px">MEMORIZE!</span>
+          <span id="memCount" style="color:#FFD700;font-size:22px;font-family:Poppins;font-weight:800;min-width:28px;text-align:center">10</span>
+          <span style="color:rgba(255,255,255,0.6);font-size:14px;font-family:Poppins">seg</span>
+        </div>
+      </div>
+
+      <div id="grid" class="card-grid"></div>
+      <div class="combo" id="combo"></div>
+    </div>
+
+    <!-- Quiz overlay (position:fixed via CSS) -->
+    <div class="quiz-overlay" id="quizOverlay">
+      <div class="quiz-bg"></div>
+      <div id="quizCard"></div>
+    </div>
+
+    <!-- Feedback overlay (position:fixed via CSS) -->
+    <div class="feedback-overlay" id="feedbackOverlay">
+      <img id="feedbackImg" src="" alt="">
+    </div>
+
   </div>
 </div>
 
@@ -104,24 +84,13 @@ var timerInterval = null;
 var memTimeout  = null;
 var gameEnded   = false;
 
-// ── Posições Figma (mesmas do jogo.html) ──────────────────────────────────────
-var positions = [];
-var cols = [21, 119, 216, 312];
-var rows = [299, 416, 533, 650];
-for (var ri = 0; ri < rows.length; ri++)
-  for (var ci = 0; ci < cols.length; ci++)
-    positions.push({ x: cols[ci], y: rows[ri] });
-
 // ── Grid ──────────────────────────────────────────────────────────────────────
 function buildGrid() {
   var grid = document.getElementById('grid');
   grid.innerHTML = '';
   deck.forEach(function(card, idx) {
-    var pos = positions[idx];
     var el = document.createElement('div');
     el.className = 'card';
-    el.style.left = pos.x + 'px';
-    el.style.top  = pos.y + 'px';
     el.innerHTML =
       '<div class="card-inner">' +
         '<div class="card-face card-front"></div>' +
@@ -156,7 +125,6 @@ function flip(idx) {
   if (!el || el.classList.contains('matched') || el.classList.contains('flipped')) return;
   if (localFlipped.length >= 2) return;
 
-  // Flip optimista
   el.classList.add('flipped');
   var newFlipped = localFlipped.concat([idx]);
   localFlipped = newFlipped;
@@ -176,7 +144,6 @@ function checkMatch(a, b) {
   var cards = document.querySelectorAll('.card');
 
   if (c1 && c2 && c1.pairId === c2.pairId && c1.type !== c2.type) {
-    // ── PAR ENCONTRADO ──
     combo++;
     var tl = getTimeLeft();
     var gain = 100 + Math.min(combo * 25, 100) + Math.floor(tl / 10) * 5;
@@ -199,7 +166,6 @@ function checkMatch(a, b) {
     if (isLast) { upd.finished = true; upd.finishedAt = Date.now(); }
 
     if (MODE === 'quiz') {
-      // Salva match no Firebase primeiro, quiz vem depois
       updateMyBoard(code, myKey, upd);
       showQuiz(c1.pairId, isLast);
     } else {
@@ -212,7 +178,6 @@ function checkMatch(a, b) {
       });
     }
   } else {
-    // ── ERRO ──
     combo = 0;
     setTimeout(function() {
       cards[a].classList.remove('flipped');
@@ -284,14 +249,13 @@ function showQuiz(pairId, isLast) {
   card.innerHTML =
     '<div style="text-align:center;color:#026F18;font-size:22px;font-family:Poppins;font-weight:700;margin-bottom:14px">PAR ENCONTRADO!</div>' +
     '<div style="display:flex;gap:12px;justify-content:center;margin-bottom:14px">' +
-      '<img src="' + getCardImg(pairId,'sit') + '" style="width:100px;height:100px;border-radius:8px;object-fit:cover" onerror="this.style.background=\'#ccc\'">' +
-      '<img src="' + getCardImg(pairId,'sol') + '" style="width:100px;height:100px;border-radius:8px;object-fit:cover" onerror="this.style.background=\'#ccc\'">' +
+      '<img src="' + getCardImg(pairId,'sit') + '" style="width:clamp(70px,20vw,100px);height:clamp(70px,20vw,100px);border-radius:8px;object-fit:cover" onerror="this.style.background=\'#ccc\'">' +
+      '<img src="' + getCardImg(pairId,'sol') + '" style="width:clamp(70px,20vw,100px);height:clamp(70px,20vw,100px);border-radius:8px;object-fit:cover" onerror="this.style.background=\'#ccc\'">' +
     '</div>' +
     '<div style="text-align:center;color:#026F18;font-size:15px;font-family:Poppins;font-weight:500;margin-bottom:14px;line-height:1.35">' + pair.quiz.q + '</div>' +
     '<div id="quizOpts"></div>' +
     '<div id="quizExp" style="background:#f0f7f1;border-radius:6px;padding:10px;margin-top:8px;color:#026F18;font-size:13px;line-height:1.4;display:none">' + pair.quiz.exp + '</div>';
 
-  // Embaralha as alternativas (mantém rastreio da resposta correta)
   var opts = pair.quiz.opts.map(function(text, i) { return { text: text, origIdx: i }; });
   for (var si = opts.length - 1; si > 0; si--) {
     var sj = Math.floor(Math.random() * (si + 1));
@@ -302,7 +266,6 @@ function showQuiz(pairId, isLast) {
     if (opts[ci].origIdx === pair.quiz.c) { shuffledCorrect = ci; break; }
   }
 
-  // Publica quiz no Firebase para o telão ver
   updateMyBoard(code, myKey, {
     quiz: {
       active: true,
@@ -317,7 +280,7 @@ function showQuiz(pairId, isLast) {
   var optsEl = document.getElementById('quizOpts');
   opts.forEach(function(o, i) {
     var btn = document.createElement('div');
-    btn.style.cssText = 'width:293px;min-height:35px;background:#026F18;border-radius:3px;margin:0 auto 10px;display:flex;align-items:flex-start;padding:8px 16px;cursor:pointer;color:white;font-size:15px;font-family:Poppins;font-weight:500;line-height:1.3;overflow-wrap:break-word;word-break:break-word';
+    btn.style.cssText = 'width:100%;min-height:35px;background:#026F18;border-radius:3px;margin:0 auto 10px;display:flex;align-items:flex-start;padding:8px 16px;cursor:pointer;color:white;font-size:15px;font-family:Poppins;font-weight:500;line-height:1.3;box-sizing:border-box;overflow-wrap:break-word;word-break:break-word';
     btn.textContent = String.fromCharCode(65+i) + ') ' + o.text;
     (function(sel, correct, b, last) {
       b.addEventListener('click', function() { answerQuiz(sel, correct, b, last); });
@@ -337,7 +300,6 @@ function answerQuiz(sel, correct, btn, isLast) {
   else     { btn.style.background = '#FF0000'; btn.style.opacity = '1'; all[correct].style.background = '#04a025'; all[correct].style.opacity = '1'; }
   document.getElementById('quizExp').style.display = 'block';
 
-  // Sinaliza resposta para o telão
   updateMyBoard(code, myKey, { 'quiz/answeredIdx': sel });
 
   setTimeout(function() {
@@ -373,12 +335,10 @@ function startMemorizationCountdown(gs) {
 async function endGame() {
   clearInterval(timerInterval);
 
-  // Garante board finalizado no Firebase
   var upd = { finished: true, score: myScore, matchedCount: myPairs };
   if (!upd.finishedAt) upd.finishedAt = Date.now();
   await updateMyBoard(code, myKey, upd);
 
-  // Posição pelo score atual dos boards (leitura rápida)
   var boardsSnap = await db.ref('salas/' + code + '/boards').once('value');
   var boards = boardsSnap.val() || {};
   var myFinalScore = myScore;
@@ -398,7 +358,6 @@ async function endGame() {
   var finalTime = String(m).padStart(2,'0') + ':' + String(s).padStart(2,'0');
   var finalPairs = myPairs + '/8';
 
-  // sessionStorage é por aba — cada jogador vê seus próprios resultados
   sessionStorage.setItem('hondaFinalPos',      String(pos));
   sessionStorage.setItem('hondaFinalScore',    String(myFinalScore));
   sessionStorage.setItem('hondaFinalTime',     finalTime);
@@ -410,7 +369,7 @@ async function endGame() {
   goTo('parabens.html');
 }
 
-// ── Lê o deck do próprio board (cada jogador tem deck diferente) ──────────────
+// ── Lê o deck do próprio board ─────────────────────────────────────────────────
 function readOwnDeck() {
   if (!myKey || !firebaseReady) { setTimeout(readOwnDeck, 400); return; }
   db.ref('salas/' + code + '/boards/' + myKey + '/deck').once('value', function(snap) {
@@ -428,7 +387,7 @@ function readOwnDeck() {
 }
 readOwnDeck();
 
-// ── Listener principal (gameState compartilhado) ──────────────────────────────
+// ── Listener principal ────────────────────────────────────────────────────────
 listenGameState(code, function(gs) {
   if (!gs) return;
   gameState = gs;

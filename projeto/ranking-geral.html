@@ -2,22 +2,27 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=440,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ranking Geral — Semana da Segurança</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="frame">
-  <img class="bg" src="assets/fundo.png" alt="">
-  <button class="btn-back" onclick="goTo('index.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
-  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+<div class="page-screen">
 
-  <!-- Título -->
-  <div style="left:106px;top:220px;position:absolute;text-align:center;color:white;font-size:32px;font-family:Poppins;font-weight:600;line-height:40px">Ranking geral</div>
+  <header class="page-header">
+    <button class="page-btn-back clickable" onclick="goTo('index.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
+    <div class="page-logo"><img src="assets/logo-honda.png" alt="Honda"></div>
+  </header>
 
-  <!-- Podium + List -->
-  <div id="podium"></div>
-  <div id="rankList"></div>
+  <h1 class="page-title">Ranking geral</h1>
+
+  <div class="page-content">
+    <div class="ranking-outer">
+      <div id="podium"></div>
+      <div id="rankList"></div>
+    </div>
+  </div>
+
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>

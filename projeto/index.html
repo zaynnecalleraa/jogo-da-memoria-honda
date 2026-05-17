@@ -2,29 +2,39 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=440,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Semana da Segurança</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="page-home">
 
-<div class="frame" style="background:url('assets/bg-home.png') top center/cover no-repeat">
+<div class="home-screen">
+  <div class="home-buttons">
 
-  <!-- Botão JOGAR -->
-  <div style="width:209px;height:53px;left:115px;top:700px;position:absolute;background:#FF0000;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center" class="clickable" onclick="goTo('menu.html')">
-    <span style="color:white;font-size:32px;font-family:Poppins;font-weight:700">JOGAR</span>
-  </div>
+    <!-- Linha com os 2 botões principais -->
+    <!-- Celular: empilhados · Tablet/Desktop: lado a lado -->
+    <div class="home-buttons-row">
 
-  <!-- Botão JOGO 2 -->
-  <div style="width:209px;height:53px;left:115px;top:762px;position:absolute;background:#FF0000;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center" class="clickable" onclick="window.open('https://hazard-hunt-dynamic.lovable.app','_blank')">
-    <span style="color:white;font-size:32px;font-family:Poppins;font-weight:700">JOGO 2</span>
-  </div>
+      <!-- Botão SEGURANÇA (era "JOGAR") -->
+      <div class="btn-home-main clickable" onclick="goTo('menu.html')">
+        SEGURANÇA
+      </div>
 
-  <!-- Botão Ver ranking -->
-  <div style="width:209px;height:53px;left:115px;top:824px;position:absolute;border-radius:10px;border:4px #FF0000 solid;cursor:pointer;display:flex;align-items:center;justify-content:center" class="clickable" onclick="goTo('ranking-geral.html')">
-    <span style="color:#FF0000;font-size:24px;font-family:Poppins;font-weight:600">Ver ranking</span>
+      <!-- Botão TRÂNSITO (era "JOGO 2") -->
+      <div class="btn-home-main clickable" onclick="window.open('https://hazard-hunt-dynamic.lovable.app','_blank')">
+        TRÂNSITO
+      </div>
+
+    </div>
+
+    <!-- Botão Ver ranking -->
+    <div class="btn-home-outline clickable" onclick="goTo('ranking-geral.html')">
+      Ver ranking
+    </div>
+
   </div>
 </div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="js/game.js"></script>

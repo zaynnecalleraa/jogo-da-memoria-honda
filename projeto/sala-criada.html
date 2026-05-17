@@ -2,32 +2,41 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=440,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sala Criada — Semana da Segurança</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="frame">
-  <img class="bg" src="assets/fundo.png" alt="">
-  <button class="btn-back" onclick="goTo('criar-sala.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
-  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+<div class="page-screen">
 
-  <div style="left:126px;top:180px;position:absolute;text-align:center;color:white;font-size:32px;font-family:Poppins;font-weight:600;line-height:40px">Sala criada</div>
+  <header class="page-header">
+    <button class="page-btn-back clickable" onclick="goTo('menu.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
+    <div class="page-logo"><img src="assets/logo-honda.png" alt="Honda"></div>
+  </header>
 
-  <div style="width:321px;height:220px;left:59px;top:240px;position:absolute;background:white;border-radius:12px"></div>
-  <div style="left:84px;top:265px;position:absolute;color:#026F18;font-size:18px;font-family:Poppins;font-weight:500;text-transform:uppercase">COMPARTILHE ESTE CÓDIGO</div>
-  <div id="codeBoxes" style="position:absolute;left:85px;top:310px;display:flex;gap:5px"></div>
-  <div style="position:absolute;left:192px;top:405px;cursor:pointer" onclick="copyCode()">
-    <img id="copyIcon" src="assets/icon-copy.png" alt="Copiar" style="width:40px;height:40px" onerror="this.outerHTML='<span style=font-size:30px>📋</span>'">
-  </div>
-  <div id="copyMsg" style="left:170px;top:445px;position:absolute;color:#026F18;font-size:12px;font-family:Poppins;font-weight:500;opacity:0;transition:opacity 0.3s">Código copiado!</div>
+  <h1 class="page-title">Sala criada</h1>
 
-  <div style="width:321px;height:230px;left:59px;top:480px;position:absolute;background:rgba(255,255,255,0.90);border-radius:8px"></div>
-  <div style="left:149px;top:495px;position:absolute;text-align:center;color:#026F18;font-size:18px;font-family:Poppins;font-weight:500">Jogadores</div>
-  <div id="playersList" style="position:absolute;left:78px;top:525px;width:284px"></div>
+  <div class="page-content">
 
-  <div id="btnIniciar" style="width:220px;height:42px;left:110px;top:730px;position:absolute;background:#FF0000;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center" class="clickable" onclick="iniciar()">
-    <span style="color:white;font-size:18px;font-family:Poppins;font-weight:700">INICIAR PARTIDA</span>
+    <!-- Código da sala -->
+    <div class="form-card" style="margin-bottom:16px">
+      <div class="form-label" style="text-transform:uppercase;text-align:center;margin-bottom:12px">COMPARTILHE ESTE CÓDIGO</div>
+      <div id="codeBoxes" class="code-boxes" style="justify-content:center;margin-bottom:12px"></div>
+      <div style="text-align:center;cursor:pointer;margin-bottom:4px" onclick="copyCode()">
+        <img id="copyIcon" src="assets/icon-copy.png" alt="Copiar" style="width:40px;height:40px" onerror="this.outerHTML='<span style=font-size:30px>📋</span>'">
+      </div>
+      <div id="copyMsg" style="text-align:center;color:#026F18;font-size:12px;font-family:Poppins;font-weight:500;opacity:0;transition:opacity 0.3s">Código copiado!</div>
+    </div>
+
+    <!-- Jogadores -->
+    <div class="form-card" style="margin-bottom:16px">
+      <div class="form-label" style="text-align:center;margin-bottom:10px">Jogadores</div>
+      <div id="playersList"></div>
+    </div>
+
+    <!-- Botão INICIAR -->
+    <div id="btnIniciar" class="btn-primary clickable" onclick="iniciar()">INICIAR PARTIDA</div>
+
   </div>
 </div>
 
@@ -46,7 +55,7 @@ var memorizeTime = state.memorizeTime || 0;
 var boxesEl = document.getElementById('codeBoxes');
 for (var i = 0; i < code.length; i++) {
   var box = document.createElement('div');
-  box.style.cssText = 'width:50px;height:73px;border-radius:4px;border:4px solid #026F18;display:flex;align-items:center;justify-content:center;font-size:32px;font-family:Poppins;font-weight:700;color:#026F18';
+  box.className = 'code-box';
   box.textContent = code[i];
   boxesEl.appendChild(box);
 }
@@ -60,21 +69,21 @@ if (willPlay && state.playerName) {
 function escutarJogadores() {
   var listEl = document.getElementById('playersList');
   if (!firebaseReady) {
-    listEl.innerHTML = '<div style="height:80px;display:flex;align-items:center;justify-content:center"><div style="color:rgba(2,111,24,0.35);font-size:14px;font-family:Poppins;font-weight:500">Firebase não conectado</div></div>';
+    listEl.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(2,111,24,0.35);font-size:14px;font-family:Poppins">Firebase não conectado</div>';
     return;
   }
   db.ref('salas/' + code + '/jogadores').on('value', function(snap) {
     var data = snap.val();
     if (!data) {
-      listEl.innerHTML = '<div style="height:80px;display:flex;align-items:center;justify-content:center"><div style="color:rgba(2,111,24,0.35);font-size:14px;font-family:Poppins;font-weight:500">Aguardando jogadores...</div></div>';
+      listEl.innerHTML = '<div style="padding:20px;text-align:center;color:rgba(2,111,24,0.35);font-size:14px;font-family:Poppins">Aguardando jogadores...</div>';
       return;
     }
     var jogadores = [];
     Object.keys(data).forEach(function(k) { jogadores.push(data[k]); });
     var html = '';
     for (var i = 0; i < jogadores.length; i++) {
-      html += '<div style="width:284px;height:29px;background:white;border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 10px;margin-bottom:6px">' +
-        '<span style="font-size:12px">👤</span>' +
+      html += '<div style="width:100%;min-height:36px;background:white;border-radius:4px;border:1px solid #e8e8e8;display:flex;align-items:center;gap:8px;padding:0 12px;margin-bottom:6px;box-sizing:border-box">' +
+        '<span style="font-size:14px">👤</span>' +
         '<span style="color:#026F18;font-size:14px;font-family:Poppins;font-weight:500;flex:1">' + jogadores[i].name + '</span></div>';
     }
     listEl.innerHTML = html;
@@ -83,8 +92,8 @@ function escutarJogadores() {
 escutarJogadores();
 
 if (!willPlay && !tvMode) {
-  document.getElementById('btnIniciar').querySelector('span').textContent = 'VOLTAR AO INÍCIO';
-  document.getElementById('btnIniciar').onclick = function() { goTo('index.html'); };
+  document.getElementById('btnIniciar').textContent = 'VOLTAR AO INÍCIO';
+  document.getElementById('btnIniciar').onclick = function() { goTo('menu.html'); };
 }
 
 function copyCode() {
@@ -95,7 +104,6 @@ function copyCode() {
 
 async function iniciar() {
   if (tvMode) {
-    // Busca jogadores do Firebase
     var snap = await db.ref('salas/' + code + '/jogadores').once('value');
     var jogadores = snap.val() || {};
     var keys = Object.keys(jogadores);
@@ -104,7 +112,6 @@ async function iniciar() {
       return;
     }
 
-    // Ordena por joinedAt para definir a ordem dos turnos
     var entries = keys.map(function(k) {
       return { key: k, name: jogadores[k].name || 'Jogador', joinedAt: jogadores[k].joinedAt || 0 };
     }).sort(function(a, b) { return a.joinedAt - b.joinedAt; });
@@ -113,11 +120,9 @@ async function iniciar() {
     var timeTotal = state.timeTotal || 120;
 
     if (myMode === 'quizonly') {
-      // Quiz-only: sem boards de memória — anfitrião gerencia turnos em modo-tv.html
       await iniciarPartidaFirebase(code);
       goTo('modo-tv.html');
     } else {
-      // Memória / memória+quiz: cria boards individuais, anfitrião vê telão
       await initGameStateV2(code, playerKeys, timeTotal, memorizeTime);
       await iniciarPartidaFirebase(code);
       goTo('telao.html');
@@ -126,7 +131,7 @@ async function iniciar() {
     await iniciarPartidaFirebase(code);
     goTo('jogo.html');
   } else {
-    goTo('index.html');
+    goTo('menu.html');
   }
 }
 </script>

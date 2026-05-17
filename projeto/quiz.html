@@ -2,45 +2,46 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=440,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Quiz — Semana da Segurança</title>
 <link rel="stylesheet" href="css/style.css">
-<style>
-  .feedback-overlay{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,0.70);display:none;align-items:center;justify-content:center}
-  .feedback-overlay.active{display:flex}
-  .feedback-overlay img{width:153px;height:153px;animation:popIn .4s ease-out}
-  @keyframes popIn{from{transform:scale(0) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
-</style>
 </head>
 <body>
-<div class="frame">
-  <img class="bg" src="assets/fundo.png" alt="">
-  <button class="btn-back" onclick="exitQuiz()"><img src="assets/icon-back.png" alt="Voltar"></button>
-  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+<div class="page-screen">
 
-  <!-- Timer -->
-  <div style="width:98px;height:31px;left:94px;top:159px;position:absolute;background:white;border-radius:3px;display:flex;align-items:center;gap:4px;padding:0 8px">
-    <img src="assets/icon-clock.png" alt="" style="width:22px;height:22px" onerror="this.outerHTML='⏱️'">
-    <span id="timer" style="color:#026F18;font-size:20px;font-family:Poppins;font-weight:500;line-height:25px">02:00</span>
-  </div>
+  <header class="page-header">
+    <button class="page-btn-back clickable" onclick="exitQuiz()"><img src="assets/icon-back.png" alt="Voltar"></button>
+    <div class="page-logo"><img src="assets/logo-honda.png" alt="Honda"></div>
+  </header>
 
-  <!-- Pergunta X/8 -->
-  <div style="width:120px;height:31px;left:228px;top:159px;position:absolute;background:white;border-radius:3px;display:flex;align-items:center;padding:0 8px">
-    <span style="color:#026F18;font-size:17px;font-family:Poppins;font-weight:500">Q: <span id="qNum">1/8</span></span>
+  <!-- Timer + questão -->
+  <div class="quiz-top-bar">
+    <div class="game-info-badge">
+      <img src="assets/icon-clock.png" alt="" style="width:22px;height:22px" onerror="this.outerHTML='⏱️'">
+      <span id="timer">02:00</span>
+    </div>
+    <div class="game-info-badge">
+      <span>Q: <span id="qNum">1/8</span></span>
+    </div>
   </div>
 
   <!-- Barra de progresso -->
-  <div style="width:364px;height:8px;left:38px;top:198px;position:absolute;background:rgba(255,255,255,0.3);border-radius:4px">
-    <div id="progressFill" style="height:100%;width:12.5%;background:#04a025;border-radius:4px;transition:width 0.4s ease"></div>
+  <div class="quiz-progress-wrap">
+    <div class="quiz-progress-bar">
+      <div id="progressFill"></div>
+    </div>
   </div>
 
   <!-- Card da pergunta -->
-  <div id="quizCard" style="width:364px;left:38px;top:218px;position:absolute;background:white;border-radius:8px;padding:20px 18px;min-height:530px"></div>
+  <div class="page-content">
+    <div id="quizCard" class="quiz-card-page"></div>
+  </div>
 
-  <!-- Feedback overlay -->
+  <!-- Feedback overlay (position:fixed via CSS) -->
   <div class="feedback-overlay" id="feedbackOverlay">
     <img id="feedbackImg" src="" alt="">
   </div>
+
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -201,7 +202,7 @@ async function endQuiz() {
 function exitQuiz() {
   showConfirm('Sair do quiz?', 'Seu progresso será perdido.', function() {
     clearInterval(timerId);
-    goTo('index.html');
+    goTo('menu.html');
   });
 }
 

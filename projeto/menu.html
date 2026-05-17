@@ -2,36 +2,45 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=440,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Menu — Semana da Segurança</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
-<div class="frame">
-  <!-- Fundo -->
-  <img class="bg" src="assets/fundo.png" alt="">
+<body class="page-menu">
 
-  <!-- Botão Voltar -->
-  <button class="btn-back" onclick="goTo('index.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
+<div class="menu-screen">
+
+  <!-- Botão Voltar (fixo no canto superior esquerdo) -->
+  <button class="menu-btn-back clickable" onclick="goTo('index.html')">
+    <img src="assets/icon-back.png" alt="Voltar">
+  </button>
 
   <!-- Logo Honda -->
-  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+  <div class="menu-logo">
+    <img src="assets/logo-honda.png" alt="Honda">
+  </div>
 
   <!-- Título -->
-  <div style="left:59px;top:200px;position:absolute;text-align:center;justify-content:center;display:flex;flex-direction:column;color:white;font-size:32px;font-family:Poppins;font-weight:600;line-height:40px">Escolha uma opção<br>para continuar</div>
+  <p class="menu-title">Escolha uma opção<br>para continuar</p>
 
-  <!-- Card Criar Sala -->
-  <div style="width:285px;height:158px;left:77px;top:334px;position:absolute;background:white;border-radius:12px;cursor:pointer;display:flex;align-items:center" class="clickable" onclick="goTo('criar-sala.html')">
-    <img style="width:78px;height:78px;left:22px;top:41px;position:absolute" src="assets/icon-criar.png" alt="">
-    <div style="left:125px;top:55px;position:absolute;text-align:center;justify-content:center;display:flex;flex-direction:column;color:#026F18;font-size:24px;font-family:Poppins;font-weight:500;line-height:25px">Criar<br>uma sala</div>
+  <!-- Cards de opção -->
+  <!-- Tablet/Desktop: ficam lado a lado · Celular: empilhados -->
+  <div class="menu-cards">
+
+    <div class="menu-card clickable" onclick="goTo('criar-sala.html')">
+      <img src="assets/icon-criar.png" alt="">
+      <span class="menu-card-label">Criar<br>uma sala</span>
+    </div>
+
+    <div class="menu-card clickable" onclick="goTo('entrar-sala.html')">
+      <img src="assets/icon-entrar.png" alt="">
+      <span class="menu-card-label">Entrar em<br>uma sala</span>
+    </div>
+
   </div>
 
-  <!-- Card Entrar Sala -->
-  <div style="width:285px;height:158px;left:77px;top:524px;position:absolute;background:white;border-radius:12px;cursor:pointer;display:flex;align-items:center" class="clickable" onclick="goTo('entrar-sala.html')">
-    <img style="width:88px;height:88px;left:22px;top:35px;position:absolute" src="assets/icon-entrar.png" alt="">
-    <div style="left:125px;top:52px;position:absolute;text-align:center;justify-content:center;display:flex;flex-direction:column;color:#026F18;font-size:24px;font-family:Poppins;font-weight:500;line-height:25px">Entrar em<br>uma sala</div>
-  </div>
 </div>
+
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="js/game.js"></script>

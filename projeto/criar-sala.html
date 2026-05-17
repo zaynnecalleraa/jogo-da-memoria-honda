@@ -2,100 +2,91 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=440,user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Criar Sala — Semana da Segurança</title>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-<div class="frame">
-  <img class="bg" src="assets/fundo.png" alt="">
-  <button class="btn-back" onclick="goTo('menu.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
-  <div class="logo-honda"><img src="assets/logo-honda.png" alt="Honda"></div>
+<div class="page-screen">
 
-  <div style="left:140px;top:164px;position:absolute;text-align:center;color:white;font-size:32px;font-family:Poppins;font-weight:600;line-height:40px">Criar sala</div>
+  <header class="page-header">
+    <button class="page-btn-back clickable" onclick="goTo('menu.html')"><img src="assets/icon-back.png" alt="Voltar"></button>
+    <div class="page-logo"><img src="assets/logo-honda.png" alt="Honda"></div>
+  </header>
 
-  <!-- Card background -->
-  <div style="width:308px;height:630px;left:66px;top:215px;position:absolute;background:white;border-radius:12px"></div>
+  <h1 class="page-title">Criar sala</h1>
 
-  <!-- Nome da sala -->
-  <div style="left:93px;top:234px;position:absolute;color:#026F18;font-size:17px;font-family:Poppins;font-weight:500">Nome da sala:</div>
-  <input id="roomName" type="text" style="width:234px;height:36px;left:93px;top:256px;position:absolute;background:#026F18;border-radius:3px;border:none;color:white;font-size:15px;font-family:Poppins;padding:0 12px" placeholder="Ex: Turma A">
+  <div class="page-content">
+    <div class="form-card">
 
-  <!-- Modo de jogo -->
-  <div style="left:93px;top:308px;position:absolute;color:#026F18;font-size:17px;font-family:Poppins;font-weight:500">Modo de jogo:</div>
-  <div id="modeMemory" style="width:72px;height:50px;left:93px;top:330px;position:absolute;background:#04a025;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid #04a025" onclick="selMode('memory')">
-    <span style="text-align:center;color:white;font-size:12px;font-family:Poppins;font-weight:500;line-height:13px">Jogo da<br>memória</span>
-  </div>
-  <div id="modeQuiz" style="width:72px;height:50px;left:174px;top:330px;position:absolute;background:#026F18;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid transparent" onclick="selMode('quiz')">
-    <span style="text-align:center;color:white;font-size:12px;font-family:Poppins;font-weight:500;line-height:13px">Memória<br>+ quiz</span>
-  </div>
-  <div id="modeQuizOnly" style="width:72px;height:50px;left:255px;top:330px;position:absolute;background:#026F18;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid transparent" onclick="selMode('quizonly')">
-    <span style="text-align:center;color:white;font-size:12px;font-family:Poppins;font-weight:500;line-height:13px">Só<br>quiz</span>
-  </div>
+      <!-- Nome da sala -->
+      <div class="form-row">
+        <label class="form-label">Nome da sala:</label>
+        <input id="roomName" type="text" class="form-input-full" placeholder="Ex: Turma A">
+      </div>
 
-  <!-- Tempo de memorização -->
-  <div id="memLabel" style="left:93px;top:394px;position:absolute;color:#026F18;font-size:17px;font-family:Poppins;font-weight:500">Memorizar por:</div>
-  <div id="memBtns" style="left:93px;top:416px;position:absolute;display:flex;gap:5px">
-    <div id="memNao" style="width:48px;height:34px;background:#026F18;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid transparent" onclick="selMem(0)">
-      <span style="color:white;font-size:11px;font-family:Poppins;font-weight:600">Não</span>
+      <!-- Modo de jogo -->
+      <div class="form-row">
+        <div class="form-label">Modo de jogo:</div>
+        <div class="form-btn-group">
+          <div id="modeMemory" class="form-btn active clickable" onclick="selMode('memory')">Jogo da<br>memória</div>
+          <div id="modeQuiz"   class="form-btn clickable"        onclick="selMode('quiz')">Memória<br>+ quiz</div>
+          <div id="modeQuizOnly" class="form-btn clickable"      onclick="selMode('quizonly')">Só<br>quiz</div>
+        </div>
+      </div>
+
+      <!-- Memorizar por (ocultado no modo só quiz via JS) -->
+      <div class="form-label" id="memLabel" style="margin-bottom:6px">Memorizar por:</div>
+      <div class="form-btn-group" id="memBtns" style="margin-bottom:18px">
+        <div id="memNao" class="form-btn clickable" onclick="selMem(0)">Não</div>
+        <div id="mem5"   class="form-btn clickable" onclick="selMem(5)">5s</div>
+        <div id="mem10"  class="form-btn active clickable" onclick="selMem(10)">10s</div>
+        <div id="mem15"  class="form-btn clickable" onclick="selMem(15)">15s</div>
+        <div id="mem20"  class="form-btn clickable" onclick="selMem(20)">20s</div>
+      </div>
+
+      <!-- Tempo de partida -->
+      <div class="form-row">
+        <div class="form-label">Tempo de partida:</div>
+        <div class="form-time-inputs">
+          <input id="timeMin" type="text" class="form-time-input" value="02" maxlength="2" inputmode="numeric">
+          <span class="form-time-sep">:</span>
+          <input id="timeSec" type="text" class="form-time-input" value="00" maxlength="2" inputmode="numeric">
+        </div>
+        <p class="form-hint">Máximo: 10:00 (10 minutos)</p>
+      </div>
+
+      <!-- Modo TV -->
+      <div class="form-row">
+        <div class="form-label">Modo TV (passar vez):</div>
+        <div class="form-toggle-group">
+          <div id="tvNo"  class="form-toggle active clickable" onclick="selTV(false)">Não</div>
+          <div id="tvYes" class="form-toggle clickable"        onclick="selTV(true)">Sim</div>
+        </div>
+      </div>
+
+      <!-- Máx. jogadores -->
+      <div class="form-row">
+        <div class="form-label">Máx. jogadores:</div>
+        <div class="form-max-row">
+          <input id="maxInput" type="text" class="form-max-input" inputmode="numeric" maxlength="4" placeholder="Sem limite" oninput="onMaxInput(this.value)">
+          <div id="maxUnlim" class="form-max-unlim clickable" onclick="selMax(null)">∞</div>
+        </div>
+      </div>
+
+      <!-- Você vai jogar? (oculto em modo TV via JS) -->
+      <div class="form-row" id="playRow">
+        <div class="form-label" id="playLabel">Você vai jogar?</div>
+        <div class="form-toggle-group" id="playBtns">
+          <div id="playYes" class="form-toggle active clickable" onclick="selPlay(true)">Sim, jogar</div>
+          <div id="playNo"  class="form-toggle clickable"        onclick="selPlay(false)">Só criar</div>
+        </div>
+      </div>
+
+      <!-- Botão CRIAR -->
+      <div class="btn-primary clickable" style="margin-top:8px" onclick="criar()">CRIAR</div>
+
     </div>
-    <div id="mem5"  style="width:48px;height:34px;background:#026F18;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid transparent" onclick="selMem(5)">
-      <span style="color:white;font-size:11px;font-family:Poppins;font-weight:600">5s</span>
-    </div>
-    <div id="mem10" style="width:48px;height:34px;background:#04a025;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid #04a025" onclick="selMem(10)">
-      <span style="color:white;font-size:11px;font-family:Poppins;font-weight:600">10s</span>
-    </div>
-    <div id="mem15" style="width:48px;height:34px;background:#026F18;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid transparent" onclick="selMem(15)">
-      <span style="color:white;font-size:11px;font-family:Poppins;font-weight:600">15s</span>
-    </div>
-    <div id="mem20" style="width:48px;height:34px;background:#026F18;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid transparent" onclick="selMem(20)">
-      <span style="color:white;font-size:11px;font-family:Poppins;font-weight:600">20s</span>
-    </div>
-  </div>
-
-  <!-- Tempo de partida -->
-  <div style="left:93px;top:466px;position:absolute;color:#026F18;font-size:17px;font-family:Poppins;font-weight:500">Tempo de partida:</div>
-  <div style="left:93px;top:488px;position:absolute;display:flex;align-items:center;gap:4px">
-    <input id="timeMin" type="text" value="02" maxlength="2" inputmode="numeric" style="width:64px;height:36px;background:#026F18;border-radius:3px;border:none;color:white;font-size:20px;font-family:Poppins;font-weight:600;text-align:center">
-    <span style="color:#026F18;font-size:26px;font-weight:700">:</span>
-    <input id="timeSec" type="text" value="00" maxlength="2" inputmode="numeric" style="width:64px;height:36px;background:#026F18;border-radius:3px;border:none;color:white;font-size:20px;font-family:Poppins;font-weight:600;text-align:center">
-  </div>
-  <div style="left:93px;top:530px;position:absolute;color:rgba(2,111,24,0.5);font-size:10px;font-family:Poppins;font-weight:400">Máximo: 10:00 (10 minutos)</div>
-
-  <!-- Modo TV -->
-  <div style="left:93px;top:548px;position:absolute;color:#026F18;font-size:17px;font-family:Poppins;font-weight:500">Modo TV (passar vez):</div>
-  <div id="tvNo" style="width:108px;height:36px;left:93px;top:570px;position:absolute;background:#04a025;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid #04a025" onclick="selTV(false)">
-    <span style="color:white;font-size:14px;font-family:Poppins;font-weight:600">Não</span>
-  </div>
-  <div id="tvYes" style="width:108px;height:36px;left:210px;top:570px;position:absolute;background:#026F18;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid transparent" onclick="selTV(true)">
-    <span style="color:white;font-size:14px;font-family:Poppins;font-weight:600">Sim</span>
-  </div>
-
-  <!-- Máx. jogadores -->
-  <div style="left:93px;top:622px;position:absolute;color:#026F18;font-size:17px;font-family:Poppins;font-weight:500">Máx. jogadores:</div>
-  <div style="left:93px;top:645px;position:absolute;display:flex;align-items:center;gap:10px">
-    <input id="maxInput" type="text" inputmode="numeric" maxlength="4" placeholder="Digite um número"
-      style="width:162px;height:36px;border:2px solid #026F18;border-radius:3px;text-align:center;font-size:15px;font-family:Poppins;color:#026F18;padding:0 8px;background:white"
-      oninput="onMaxInput(this.value)">
-    <div id="maxUnlim" style="width:58px;height:36px;background:#04a025;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid #04a025" onclick="selMax(null)">
-      <span style="color:white;font-size:20px;font-family:Poppins;font-weight:700">∞</span>
-    </div>
-  </div>
-
-  <!-- Você vai jogar? -->
-  <div id="playLabel" style="left:93px;top:697px;position:absolute;color:#026F18;font-size:17px;font-family:Poppins;font-weight:500">Você vai jogar?</div>
-  <div id="playBtns" style="left:93px;top:719px;position:absolute;display:flex;gap:9px">
-    <div id="playYes" style="width:108px;height:36px;background:#04a025;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid #04a025" onclick="selPlay(true)">
-      <span style="color:white;font-size:14px;font-family:Poppins;font-weight:600">Sim, jogar</span>
-    </div>
-    <div id="playNo" style="width:108px;height:36px;background:#026F18;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;border:3px solid transparent" onclick="selPlay(false)">
-      <span style="color:white;font-size:14px;font-family:Poppins;font-weight:600">Só criar</span>
-    </div>
-  </div>
-
-  <!-- CRIAR -->
-  <div style="width:131px;height:38px;left:154px;top:787px;position:absolute;background:#FF0000;border-radius:5px;cursor:pointer;display:flex;align-items:center;justify-content:center" class="clickable" onclick="criar()">
-    <span style="text-align:center;color:white;font-size:20px;font-family:Poppins;font-weight:700">CRIAR</span>
   </div>
 </div>
 
@@ -111,7 +102,7 @@ var memorizeTime = 10;
 
 function selMode(m) {
   mode = m;
-  var map = { memory: 'modeMemory', quiz: 'modeQuiz', quizonly: 'modeQuizOnly' };
+  var map = { memory:'modeMemory', quiz:'modeQuiz', quizonly:'modeQuizOnly' };
   Object.keys(map).forEach(function(k) {
     var el = document.getElementById(map[k]);
     var active = (k === m);
@@ -120,37 +111,37 @@ function selMode(m) {
   });
   var showMem = (m !== 'quizonly');
   document.getElementById('memLabel').style.display = showMem ? 'block' : 'none';
-  document.getElementById('memBtns').style.display = showMem ? 'flex' : 'none';
+  document.getElementById('memBtns').style.display  = showMem ? 'flex'  : 'none';
 }
 
 function selMem(secs) {
   memorizeTime = secs;
-  ['Nao', '5', '10', '15', '20'].forEach(function(v) {
+  ['Nao','5','10','15','20'].forEach(function(v) {
     var val = v === 'Nao' ? 0 : parseInt(v);
     var el = document.getElementById('mem' + v);
     if (!el) return;
     var active = (val === secs);
-    el.style.background = active ? '#04a025' : '#026F18';
+    el.style.background  = active ? '#04a025' : '#026F18';
     el.style.borderColor = active ? '#04a025' : 'transparent';
   });
 }
 
 function selPlay(val) {
   willPlay = val;
-  document.getElementById('playYes').style.background = val ? '#04a025' : '#026F18';
-  document.getElementById('playYes').style.borderColor = val ? '#04a025' : 'transparent';
-  document.getElementById('playNo').style.background = !val ? '#04a025' : '#026F18';
-  document.getElementById('playNo').style.borderColor = !val ? '#04a025' : 'transparent';
+  document.getElementById('playYes').style.background  = val  ? '#04a025' : '#026F18';
+  document.getElementById('playYes').style.borderColor = val  ? '#04a025' : 'transparent';
+  document.getElementById('playNo').style.background   = !val ? '#04a025' : '#026F18';
+  document.getElementById('playNo').style.borderColor  = !val ? '#04a025' : 'transparent';
 }
 
 function selTV(val) {
   tvMode = val;
-  document.getElementById('tvYes').style.background = val ? '#04a025' : '#026F18';
-  document.getElementById('tvYes').style.borderColor = val ? '#04a025' : 'transparent';
-  document.getElementById('tvNo').style.background = !val ? '#04a025' : '#026F18';
-  document.getElementById('tvNo').style.borderColor = !val ? '#04a025' : 'transparent';
+  document.getElementById('tvYes').style.background  = val  ? '#04a025' : '#026F18';
+  document.getElementById('tvYes').style.borderColor = val  ? '#04a025' : 'transparent';
+  document.getElementById('tvNo').style.background   = !val ? '#04a025' : '#026F18';
+  document.getElementById('tvNo').style.borderColor  = !val ? '#04a025' : 'transparent';
   document.getElementById('playLabel').style.display = val ? 'none' : 'block';
-  document.getElementById('playBtns').style.display = val ? 'none' : 'flex';
+  document.getElementById('playBtns').style.display  = val ? 'none' : 'flex';
   if (val) willPlay = false;
 }
 
@@ -158,7 +149,7 @@ function selMax(val) {
   maxPlayers = val;
   document.getElementById('maxInput').value = '';
   document.getElementById('maxInput').placeholder = val === null ? 'Sem limite' : String(val);
-  document.getElementById('maxUnlim').style.background = val === null ? '#04a025' : '#026F18';
+  document.getElementById('maxUnlim').style.background  = val === null ? '#04a025' : '#026F18';
   document.getElementById('maxUnlim').style.borderColor = val === null ? '#04a025' : 'transparent';
 }
 
@@ -167,11 +158,11 @@ function onMaxInput(raw) {
   var num = parseInt(v);
   if (!v || num === 0) {
     maxPlayers = null;
-    document.getElementById('maxUnlim').style.background = '#04a025';
+    document.getElementById('maxUnlim').style.background  = '#04a025';
     document.getElementById('maxUnlim').style.borderColor = '#04a025';
   } else {
     maxPlayers = num;
-    document.getElementById('maxUnlim').style.background = '#026F18';
+    document.getElementById('maxUnlim').style.background  = '#026F18';
     document.getElementById('maxUnlim').style.borderColor = 'transparent';
   }
 }
@@ -182,26 +173,14 @@ async function criar() {
   var timeLeft = parseTimeFields(document.getElementById('timeMin'), document.getElementById('timeSec'));
   var code = generateCode();
   var memTime = (mode === 'quizonly') ? 0 : memorizeTime;
-
   if (tvMode) willPlay = false;
 
-  saveState({
-    roomName: name, mode: mode, code: code,
-    timeLeft: timeLeft, timeTotal: timeLeft,
-    host: true, willPlay: willPlay, playerName: '',
-    tvMode: tvMode, maxPlayers: maxPlayers,
-    memorizeTime: memTime
-  });
-
-  await criarSalaFirebase(code, {
-    roomName: name, mode: mode, timeTotal: timeLeft,
-    maxPlayers: maxPlayers, tvMode: tvMode,
-    memorizeTime: memTime
-  });
+  saveState({ roomName:name, mode:mode, code:code, timeLeft:timeLeft, timeTotal:timeLeft, host:true, willPlay:willPlay, playerName:'', tvMode:tvMode, maxPlayers:maxPlayers, memorizeTime:memTime });
+  await criarSalaFirebase(code, { roomName:name, mode:mode, timeTotal:timeLeft, maxPlayers:maxPlayers, tvMode:tvMode, memorizeTime:memTime });
 
   if (willPlay) {
     showModal('Digite seu nome', 'Seu nome', function(playerName) {
-      saveState({ playerName: playerName });
+      saveState({ playerName:playerName });
       goTo('sala-criada.html');
     });
   } else {

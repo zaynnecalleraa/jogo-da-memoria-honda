@@ -462,10 +462,10 @@ function showModal(title, placeholder, callback) {
 
   var overlay = document.createElement('div');
   overlay.id = 'customModal';
-  overlay.style.cssText = 'position:absolute;inset:0;z-index:999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:16px';
 
   var card = document.createElement('div');
-  card.style.cssText = 'width:320px;background:white;border-radius:12px;padding:28px 24px;text-align:center';
+  card.style.cssText = 'width:100%;max-width:340px;background:white;border-radius:12px;padding:28px 24px;text-align:center';
 
   var h = document.createElement('div');
   h.style.cssText = 'color:#026F18;font-size:22px;font-family:Poppins;font-weight:700;margin-bottom:16px';
@@ -502,7 +502,7 @@ function showModal(title, placeholder, callback) {
   card.appendChild(inp);
   card.appendChild(btnRow);
   overlay.appendChild(card);
-  document.querySelector('.frame').appendChild(overlay);
+  document.body.appendChild(overlay);
   setTimeout(function() { inp.focus(); }, 100);
 }
 
@@ -512,10 +512,10 @@ function showConfirm(title, msg, callback) {
 
   var overlay = document.createElement('div');
   overlay.id = 'customModal';
-  overlay.style.cssText = 'position:absolute;inset:0;z-index:999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:999;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:16px';
 
   var card = document.createElement('div');
-  card.style.cssText = 'width:320px;background:white;border-radius:12px;padding:28px 24px;text-align:center';
+  card.style.cssText = 'width:100%;max-width:340px;background:white;border-radius:12px;padding:28px 24px;text-align:center';
 
   var h = document.createElement('div');
   h.style.cssText = 'color:#026F18;font-size:22px;font-family:Poppins;font-weight:700;margin-bottom:10px';
@@ -544,66 +544,51 @@ function showConfirm(title, msg, callback) {
   card.appendChild(p);
   card.appendChild(btnRow);
   overlay.appendChild(card);
-  document.querySelector('.frame').appendChild(overlay);
+  document.body.appendChild(overlay);
 }
 
 // ============================================
-// RENDER RANKING
-// SEMPRE mostra as 3 bases + medalhas + área branca
-// Texto fica vazio onde não tem jogador
+// RENDER RANKING — layout responsivo com CSS classes
 // ============================================
 function renderRanking(podiumId, listId, players) {
   var p = players.slice().sort(function(a, b) { return b.score - a.score; });
   var podEl = document.getElementById(podiumId);
   var listEl = document.getElementById(listId);
 
+  // Pódio: 2º (esq) · 1º (centro) · 3º (dir)
   if (podEl) {
-    var html = '';
+    var order  = [1, 0, 2];
+    var medals = ['medal-silver.png', 'medal-gold.png', 'medal-bronze.png'];
+    var colors = ['#ABABCF', '#F59F0A', '#FA6B25'];
+    var heights = ['60px', '80px', '50px'];
 
-    // SEMPRE renderiza as 3 bases do pódio
-    html += '<div style="width:125px;height:174px;left:32px;top:342px;position:absolute;background:#ABABCF;border-top-left-radius:12px;border-top-right-radius:12px"></div>';
-    html += '<div style="width:125px;height:206px;left:157px;top:310px;position:absolute;background:#F59F0A;border-top-left-radius:12px;border-top-right-radius:12px"></div>';
-    html += '<div style="width:125px;height:150px;left:282px;top:366px;position:absolute;background:#FA6B25;border-top-left-radius:12px;border-top-right-radius:12px"></div>';
-
-    // SEMPRE renderiza as 3 medalhas
-    html += '<img style="width:143px;height:143px;left:148px;top:253px;position:absolute" src="assets/medal-gold.png" onerror="this.style.display=\'none\'">';
-    html += '<img style="width:140px;height:140px;left:25px;top:289px;position:absolute" src="assets/medal-silver.png" onerror="this.style.display=\'none\'">';
-    html += '<img style="width:140px;height:140px;left:275px;top:310px;position:absolute" src="assets/medal-bronze.png" onerror="this.style.display=\'none\'">';
-
-    // 1st — texto só se existir
-    if (p[0]) {
-      html += '<div style="left:160px;top:380px;position:absolute;text-align:center;color:white;font-size:16px;font-family:Poppins;font-weight:500;line-height:18px;width:120px">' + p[0].name + '</div>';
-      html += '<div style="left:160px;top:417px;position:absolute;text-align:center;color:white;font-size:14px;font-family:Poppins;font-weight:700;width:120px">' + p[0].score + ' pts</div>';
+    var html = '<div class="podium">';
+    for (var i = 0; i < 3; i++) {
+      var idx = order[i];
+      var player = p[idx];
+      html += '<div class="podium-slot">';
+      html += '<img class="podium-medal" src="assets/' + medals[i] + '" onerror="this.style.display=\'none\'">';
+      html += '<div class="podium-name">' + (player ? player.name : '') + '</div>';
+      html += '<div class="podium-score">' + (player ? player.score + ' pts' : '&nbsp;') + '</div>';
+      html += '<div class="podium-base" style="background:' + colors[i] + ';height:' + heights[i] + '"></div>';
+      html += '</div>';
     }
-
-    // 2nd — texto só se existir
-    if (p[1]) {
-      html += '<div style="left:35px;top:410px;position:absolute;text-align:center;color:white;font-size:16px;font-family:Poppins;font-weight:500;line-height:18px;width:120px">' + p[1].name + '</div>';
-      html += '<div style="left:35px;top:449px;position:absolute;text-align:center;color:white;font-size:14px;font-family:Poppins;font-weight:700;width:120px">' + p[1].score + ' pts</div>';
-    }
-
-    // 3rd — texto só se existir
-    if (p[2]) {
-      html += '<div style="left:285px;top:429px;position:absolute;text-align:center;color:white;font-size:16px;font-family:Poppins;font-weight:500;line-height:18px;width:120px">' + p[2].name + '</div>';
-      html += '<div style="left:285px;top:466px;position:absolute;text-align:center;color:white;font-size:14px;font-family:Poppins;font-weight:700;width:120px">' + p[2].score + ' pts</div>';
-    }
-
+    html += '</div>';
     podEl.innerHTML = html;
   }
 
-  // Lista rolável com todos os jogadores abaixo do pódio
+  // Lista (4º em diante)
   if (listEl) {
     var extras = p.slice(3);
-    var html2 = '<div style="position:absolute;left:32px;top:516px;width:375px;max-height:400px;overflow-y:auto;background:white;border-bottom-right-radius:12px;border-bottom-left-radius:12px">';
+    var html2 = '<div class="rank-list">';
     if (extras.length === 0) {
-      html2 += '<div style="padding:18px;text-align:center;color:rgba(2,111,24,0.3);font-size:13px;font-family:Poppins;font-weight:400">Mais jogadores aparecerão aqui</div>';
+      html2 += '<div class="rank-empty">Mais jogadores aparecerão aqui</div>';
     } else {
       extras.forEach(function(player, idx) {
-        html2 +=
-          '<div style="display:flex;align-items:center;padding:6px 16px;border-bottom:1px solid rgba(2,111,24,0.07)">' +
-            '<span style="color:#FF0000;font-size:18px;font-family:Poppins;font-weight:700;min-width:36px">' + (idx + 4) + '</span>' +
-            '<span style="color:#026F18;font-size:14px;font-family:Poppins;font-weight:500;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding-right:8px">' + player.name + '</span>' +
-            '<span style="color:#026F18;font-size:14px;font-family:Poppins;font-weight:700;white-space:nowrap">' + player.score + ' pts</span>' +
+        html2 += '<div class="rank-item">' +
+          '<span class="rank-pos">' + (idx + 4) + '</span>' +
+          '<span class="rank-name">' + player.name + '</span>' +
+          '<span class="rank-score">' + player.score + ' pts</span>' +
           '</div>';
       });
     }

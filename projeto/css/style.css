@@ -1,71 +1,361 @@
 /* ============================================
    SEMANA DA SEGURANÇA — HONDA
-   CSS Compartilhado (style.css)
-   Frame Figma: 440 x 956 px
+   style.css — sistema responsivo completo
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
 
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Poppins', sans-serif; }
-body { background: #071a0d; color: #fff; display: flex; align-items: flex-start; justify-content: center; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html, body { width:100%; font-family:'Poppins',sans-serif; }
+body { background:#071a0d; color:#fff; }
 
-/* FRAME — 440x956 do Figma, JS escala pra caber na tela */
-.frame {
-  position: relative;
-  width: 450px;
-  height: 956px;
-  overflow: hidden;
-  background: #fff;
-  transform-origin: top center;
+/* telao.html — única página que ainda usa .frame */
+body:has(.frame) {
+  height:100vh; overflow:hidden;
+  display:flex; align-items:flex-start; justify-content:center;
+}
+html:has(body:has(.frame)) { height:100vh; overflow:hidden; }
+
+/* ── Frame legado (telao.html) ─────────────────────── */
+.frame { position:relative; width:450px; height:956px; overflow:hidden; background:#fff; transform-origin:top center; }
+.bg { position:absolute; width:637px; height:956px; left:-142px; top:0; object-fit:cover; }
+.logo-honda { position:absolute; width:55px; height:56px; left:192px; top:61px; overflow:hidden; z-index:2; }
+.logo-honda img { width:100%; height:100%; object-fit:contain; }
+.btn-back { position:absolute; width:50px; height:50px; left:17px; top:19px; z-index:10; cursor:pointer; border:none; background:none; padding:0; }
+.btn-back img { width:100%; height:100%; object-fit:contain; }
+
+.clickable { cursor:pointer; }
+.clickable:active { opacity:.85; transform:scale(.97); }
+a { text-decoration:none; color:inherit; }
+
+
+/* ============================================================
+   HOME — index.html
+
+   IMAGENS DE FUNDO — como trocar:
+     --bg-home        → celular  390 × 844 px
+     --bg-home-tablet → tablet   768 × 1024 px
+     --bg-home-desk   → desktop  1440 × 900 px
+   Edite as urls abaixo.
+   ============================================================ */
+:root {
+  --bg-home:        url('../assets/bg-home.png');
+  --bg-home-tablet: url('../assets/bg-home.png'); /* → bg-home-tablet.png */
+  --bg-home-desk:   url('../assets/bg-home.png'); /* → bg-home-desktop.png */
+}
+body.page-home { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:auto; display:block; }
+.home-screen {
+  width:100%; min-height:100vh;
+  background-image:var(--bg-home); background-size:cover; background-position:center top; background-repeat:no-repeat;
+  display:flex; flex-direction:column; align-items:center; justify-content:flex-end;
+  padding:0 24px max(32px, 8vh);
+}
+.home-buttons { display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; max-width:480px; }
+.home-buttons-row { display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; }
+.btn-home-main {
+  width:100%; max-width:280px; min-height:56px; background:#FF0000; border-radius:10px; border:none; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Poppins',sans-serif; font-weight:700; font-size:clamp(20px,6vw,30px); color:#fff; padding:0 16px; text-align:center;
+}
+.btn-home-outline {
+  width:100%; max-width:280px; min-height:52px; background:transparent; border-radius:10px; border:4px solid #FF0000; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Poppins',sans-serif; font-weight:600; font-size:clamp(16px,5vw,22px); color:#FF0000; padding:0 16px; text-align:center;
+}
+@media(min-width:768px) {
+  .home-screen { background-image:var(--bg-home-tablet); padding:0 40px max(48px,6vh); }
+  .home-buttons { max-width:620px; gap:20px; }
+  .home-buttons-row { flex-direction:row; justify-content:center; gap:20px; }
+  .btn-home-main { flex:1; max-width:240px; min-height:64px; font-size:28px; border-radius:12px; }
+  .btn-home-outline { max-width:300px; min-height:58px; font-size:20px; border-radius:12px; }
+}
+@media(min-width:1024px) {
+  .home-screen { background-image:var(--bg-home-desk); padding:0 60px max(60px,7vh); }
+  .home-buttons { max-width:740px; gap:24px; }
+  .home-buttons-row { gap:28px; }
+  .btn-home-main { max-width:260px; min-height:70px; font-size:32px; }
+  .btn-home-outline { max-width:320px; min-height:62px; font-size:24px; }
 }
 
-/* FUNDO — imagem de fundo (fundo.png) */
-.bg {
-  position: absolute;
-  width: 637px;
-  height: 956px;
-  left: -142px;
-  top: 0px;
-  object-fit: cover;
+
+/* ============================================================
+   MENU — menu.html
+
+   IMAGENS DE FUNDO — como trocar:
+     --bg-menu        → celular  390 × 844 px
+     --bg-menu-tablet → tablet   768 × 1024 px
+     --bg-menu-desk   → desktop  1440 × 900 px
+   ============================================================ */
+:root {
+  --bg-menu:        url('../assets/fundo.png');
+  --bg-menu-tablet: url('../assets/fundo.png'); /* → fundo-tablet.png */
+  --bg-menu-desk:   url('../assets/fundo.png'); /* → fundo-desktop.png */
+}
+body.page-menu { height:auto; min-height:100vh; overflow-x:hidden; overflow-y:auto; display:block; }
+.menu-screen {
+  width:100%; min-height:100vh;
+  background-image:var(--bg-menu); background-size:cover; background-position:center top; background-repeat:no-repeat;
+  display:flex; flex-direction:column; align-items:center; padding:80px 24px 40px;
+}
+.menu-btn-back { position:fixed; top:16px; left:16px; z-index:10; width:44px; height:44px; cursor:pointer; border:none; background:none; padding:0; }
+.menu-btn-back img { width:100%; height:100%; object-fit:contain; }
+.menu-logo { width:55px; height:56px; margin-bottom:20px; flex-shrink:0; }
+.menu-logo img { width:100%; height:100%; object-fit:contain; }
+.menu-title { color:#fff; font-size:clamp(20px,5.5vw,32px); font-weight:600; text-align:center; line-height:1.3; margin-bottom:40px; }
+.menu-cards { display:flex; flex-direction:column; gap:20px; width:100%; max-width:340px; }
+.menu-card { background:#fff; border-radius:12px; cursor:pointer; display:flex; align-items:center; padding:20px 24px; gap:20px; min-height:100px; }
+.menu-card img { width:72px; height:72px; object-fit:contain; flex-shrink:0; }
+.menu-card-label { color:#026F18; font-size:clamp(18px,4.5vw,24px); font-family:'Poppins',sans-serif; font-weight:500; line-height:1.3; }
+@media(min-width:768px) {
+  .menu-screen { background-image:var(--bg-menu-tablet); padding:100px 40px 60px; }
+  .menu-logo { width:70px; height:71px; margin-bottom:24px; }
+  .menu-cards { flex-direction:row; max-width:700px; gap:24px; }
+  .menu-card { flex:1; flex-direction:column; justify-content:center; padding:32px 20px; text-align:center; min-height:180px; gap:16px; }
+  .menu-card img { width:88px; height:88px; }
+}
+@media(min-width:1024px) {
+  .menu-screen { background-image:var(--bg-menu-desk); padding:120px 60px 80px; }
+  .menu-cards { max-width:840px; gap:32px; }
+  .menu-card { min-height:200px; padding:40px 28px; }
+  .menu-card img { width:100px; height:100px; }
 }
 
-/* LOGO HONDA — componente SVG vermelho */
-.logo-honda {
-  position: absolute;
-  width: 55px;
-  height: 56px;
-  left: 192px;
-  top: 61px;
-  overflow: hidden;
-  z-index: 2;
-}
-.logo-honda img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+
+/* ============================================================
+   PÁGINAS INTERNAS — base
+
+   IMAGENS DE FUNDO — como trocar:
+     --bg-fundo        → celular  390 × 844 px
+     --bg-fundo-tablet → tablet   768 × 1024 px
+     --bg-fundo-desk   → desktop  1440 × 900 px
+   ============================================================ */
+:root {
+  --bg-fundo:        url('../assets/fundo.png');
+  --bg-fundo-tablet: url('../assets/fundo.png'); /* → fundo-tablet.png */
+  --bg-fundo-desk:   url('../assets/fundo.png'); /* → fundo-desktop.png */
 }
 
-/* BOTÃO VOLTAR */
-.btn-back {
-  position: absolute;
-  width: 50px;
-  height: 50px;
-  left: 17px;
-  top: 19px;
-  z-index: 10;
-  cursor: pointer;
-  border: none;
-  background: none;
-  padding: 0;
+.page-screen {
+  width:100%; min-height:100vh;
+  background-image:var(--bg-fundo); background-size:cover; background-position:center top; background-repeat:no-repeat;
+  display:flex; flex-direction:column;
 }
-.btn-back img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
+@media(min-width:768px)  { .page-screen { background-image:var(--bg-fundo-tablet); } }
+@media(min-width:1024px) { .page-screen { background-image:var(--bg-fundo-desk); } }
 
-/* UTILIDADES */
-.clickable { cursor: pointer; }
-.clickable:active { opacity: 0.85; transform: scale(0.97); }
-a { text-decoration: none; color: inherit; }
+/* Header */
+.page-header { position:relative; flex-shrink:0; display:flex; align-items:center; justify-content:center; padding:14px 64px; }
+.page-btn-back { position:absolute; left:14px; top:50%; transform:translateY(-50%); width:44px; height:44px; cursor:pointer; border:none; background:none; padding:0; z-index:5; }
+.page-btn-back img { width:100%; height:100%; object-fit:contain; }
+.page-logo { width:50px; height:50px; }
+.page-logo img { width:100%; height:100%; object-fit:contain; }
+.page-title { color:#fff; font-size:clamp(20px,5vw,32px); font-weight:600; text-align:center; margin:4px 0 20px; padding:0 16px; flex-shrink:0; }
+
+/* Content area */
+.page-content { flex:1; display:flex; flex-direction:column; align-items:center; padding:4px 16px 32px; overflow-y:auto; overflow-x:hidden; }
+.page-content.centered { justify-content:center; text-align:center; }
+
+/* ── Shared buttons ── */
+.btn-primary {
+  background:#FF0000; border:none; border-radius:8px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-family:'Poppins',sans-serif; font-weight:700; font-size:clamp(15px,3.5vw,20px);
+  padding:12px 24px; min-height:46px; width:100%; max-width:400px;
+  margin-left:auto; margin-right:auto;
+}
+.btn-outline {
+  background:transparent; border:3px solid #FF0000; border-radius:8px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  color:#FF0000; font-family:'Poppins',sans-serif; font-weight:700; font-size:clamp(13px,3vw,18px);
+  padding:10px 24px; min-height:46px; width:100%; max-width:400px;
+  margin-left:auto; margin-right:auto;
+}
+.btn-gap { margin-top:12px; }
+
+/* ── Generic card ── */
+.info-card { background:#fff; border-radius:12px; width:100%; max-width:520px; padding:20px 24px; margin-bottom:16px; }
+@media(min-width:768px)  { .info-card { max-width:600px; } }
+@media(min-width:1024px) { .info-card { max-width:680px; } }
+
+
+/* ============================================================
+   CRIAR SALA
+   ============================================================ */
+.form-card { background:#fff; border-radius:12px; width:100%; max-width:520px; padding:22px 24px; }
+@media(min-width:768px)  { .form-card { max-width:600px; } }
+@media(min-width:1024px) { .form-card { max-width:680px; } }
+.form-row { margin-bottom:18px; }
+.form-label { color:#026F18; font-size:15px; font-weight:500; display:block; margin-bottom:6px; }
+.form-input-full { width:100%; height:38px; background:#026F18; border-radius:4px; border:none; color:#fff; font-size:15px; font-family:'Poppins',sans-serif; padding:0 12px; }
+.form-btn-group { display:flex; gap:8px; flex-wrap:wrap; }
+.form-btn {
+  flex:1; min-width:56px; min-height:42px; background:#026F18; border-radius:4px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  color:#fff; font-size:12px; font-family:'Poppins',sans-serif; font-weight:500;
+  line-height:1.3; text-align:center; border:3px solid transparent; padding:4px 6px;
+}
+.form-btn.active { background:#04a025; border-color:#04a025; }
+.form-time-inputs { display:flex; align-items:center; gap:6px; }
+.form-time-input { width:64px; height:38px; background:#026F18; border-radius:4px; border:none; color:#fff; font-size:20px; font-family:'Poppins',sans-serif; font-weight:600; text-align:center; }
+.form-time-sep { color:#026F18; font-size:24px; font-weight:700; }
+.form-toggle-group { display:flex; gap:10px; }
+.form-toggle { flex:1; height:38px; background:#026F18; border-radius:4px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:#fff; font-size:14px; font-family:'Poppins',sans-serif; font-weight:600; border:3px solid transparent; }
+.form-toggle.active { background:#04a025; border-color:#04a025; }
+.form-max-row { display:flex; align-items:center; gap:10px; }
+.form-max-input { flex:1; height:38px; border:2px solid #026F18; border-radius:4px; text-align:center; font-size:15px; font-family:'Poppins',sans-serif; color:#026F18; padding:0 8px; background:#fff; }
+.form-max-unlim { width:50px; height:38px; background:#04a025; border-radius:4px; cursor:pointer; display:flex; align-items:center; justify-content:center; border:3px solid #04a025; color:#fff; font-size:20px; font-weight:700; }
+.form-hint { color:rgba(2,111,24,.5); font-size:10px; margin-top:4px; }
+
+
+/* ============================================================
+   CÓDIGO DA SALA (sala-criada + entrar-sala)
+   ============================================================ */
+.code-section { text-align:center; margin-bottom:12px; }
+.code-section-label { color:#026F18; font-size:14px; font-weight:600; text-transform:uppercase; margin-bottom:12px; }
+.code-boxes { display:flex; justify-content:center; gap:clamp(4px,1.5vw,8px); }
+.code-box {
+  width:clamp(42px,9vw,56px); height:clamp(56px,12vw,76px);
+  border-radius:4px; border:3px solid #026F18;
+  display:flex; align-items:center; justify-content:center;
+  font-size:clamp(20px,5vw,32px); font-family:'Poppins',sans-serif; font-weight:700; color:#026F18;
+}
+.code-input-box {
+  width:clamp(42px,9vw,56px); height:clamp(56px,12vw,76px);
+  border-radius:4px; border:3px solid #026F18; text-align:center; outline:none;
+  font-size:clamp(20px,5vw,28px); font-family:'Poppins',sans-serif; font-weight:700; color:#026F18; background:transparent;
+}
+.code-copy-btn { cursor:pointer; margin-top:10px; display:flex; justify-content:center; }
+.code-copy-msg { color:#026F18; font-size:12px; opacity:0; transition:opacity .3s; text-align:center; margin-top:4px; }
+
+/* Player row */
+.player-row { background:#fff; border-radius:4px; display:flex; align-items:center; gap:8px; padding:0 10px; min-height:32px; margin-bottom:6px; border:1px solid #e0e0e0; }
+.player-row-name { color:#026F18; font-size:14px; font-family:'Poppins',sans-serif; font-weight:500; flex:1; }
+
+
+/* ============================================================
+   JOGO DE MEMÓRIA — layout e grid responsivo
+   ============================================================ */
+.game-screen-wrap { flex:1; display:flex; flex-direction:column; position:relative; overflow:hidden; }
+
+.game-top-bar { display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 60px; position:relative; flex-shrink:0; }
+.game-info-badge { background:#fff; border-radius:4px; display:flex; align-items:center; gap:5px; padding:0 10px; height:32px; flex-shrink:0; }
+.game-info-badge img { width:20px; height:20px; flex-shrink:0; }
+.game-info-badge span { color:#026F18; font-size:clamp(14px,3.5vw,20px); font-family:'Poppins',sans-serif; font-weight:500; white-space:nowrap; }
+
+.game-instruction { color:#fff; font-size:clamp(10px,1.8vw,12px); text-align:center; opacity:.85; padding:0 24px 6px; line-height:1.4; flex-shrink:0; }
+
+.game-board-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:8px 16px 16px; position:relative; }
+
+/* Grid 4×4 responsivo */
+#grid.card-grid {
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:clamp(6px, 1.8vw, 14px);
+  width:100%;
+  max-width:min(520px, calc(100vw - 32px));
+}
+@media(min-width:768px)  { #grid.card-grid { max-width:min(620px, calc(100vw - 64px)); } }
+@media(min-width:1024px) { #grid.card-grid { max-width:min(720px, calc(100vw - 128px)); } }
+
+/* Cartas — posição via grid, não absolute */
+.card { position:relative; width:100%; aspect-ratio:1; cursor:pointer; perspective:800px; }
+.card-inner { width:100%; height:100%; position:relative; transition:transform .5s cubic-bezier(.4,0,.2,1); transform-style:preserve-3d; }
+.card.flipped .card-inner, .card.matched .card-inner { transform:rotateY(180deg); }
+.card.matched { pointer-events:none; opacity:.5; }
+.card-face { position:absolute; inset:0; border-radius:8px; backface-visibility:hidden; -webkit-backface-visibility:hidden; overflow:hidden; }
+.card-front { background:url('../assets/card-back.png') center/cover no-repeat #026F18; }
+.card-back { transform:rotateY(180deg); }
+.card-back img { width:100%; height:100%; object-fit:cover; border-radius:8px; }
+
+/* Banner de memorização (flutuante sobre o grid) */
+#memBanner { position:absolute; top:8px; left:50%; transform:translateX(-50%); z-index:20; display:none; pointer-events:none; white-space:nowrap; }
+
+/* Combo */
+.combo {
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:40; pointer-events:none;
+  font-size:clamp(28px,7vw,48px); font-weight:800; font-family:'Poppins',sans-serif;
+  color:#FFD700; text-shadow:0 0 20px rgba(255,215,0,.6),2px 2px 4px rgba(0,0,0,.5); opacity:0;
+}
+.combo.show { animation:comboPop .8s ease-out forwards; }
+@keyframes comboPop { 0%{transform:translate(-50%,-50%) scale(.5);opacity:0} 30%{transform:translate(-50%,-50%) scale(1.3);opacity:1} 100%{transform:translate(-50%,-60%) scale(1);opacity:0} }
+
+/* Quiz overlay — cobre a viewport inteira */
+.quiz-overlay { position:fixed; inset:0; z-index:50; display:none; align-items:center; justify-content:center; padding:16px; }
+.quiz-overlay.active { display:flex; }
+.quiz-bg { position:absolute; inset:0; background:rgba(0,0,0,.72); z-index:0; }
+#quizCard { width:100%; max-width:440px; background:#fff; border-radius:8px; padding:20px 18px; position:relative; z-index:1; max-height:calc(100vh - 32px); overflow-y:auto; }
+
+/* Feedback overlay — cobre viewport */
+.feedback-overlay { position:fixed; inset:0; z-index:60; background:rgba(0,0,0,.70); display:none; align-items:center; justify-content:center; }
+.feedback-overlay.active { display:flex; }
+.feedback-overlay img { width:clamp(100px,30vw,153px); height:clamp(100px,30vw,153px); animation:popIn .4s ease-out; }
+@keyframes popIn { from{transform:scale(0) rotate(-10deg);opacity:0} to{transform:scale(1) rotate(0);opacity:1} }
+
+
+/* ============================================================
+   QUIZ SCREEN
+   ============================================================ */
+.quiz-top-bar { display:flex; align-items:center; justify-content:center; gap:10px; padding:10px 60px; position:relative; flex-shrink:0; }
+.quiz-progress-wrap { flex-shrink:0; padding:0 16px 6px; }
+.quiz-progress-bar { height:8px; background:rgba(255,255,255,.3); border-radius:4px; }
+#progressFill { height:100%; width:12.5%; background:#04a025; border-radius:4px; transition:width .4s ease; }
+#quizCard.quiz-card-page { width:100%; max-width:540px; background:#fff; border-radius:8px; padding:20px 18px; }
+
+
+/* ============================================================
+   RANKING — flexbox responsivo
+   ============================================================ */
+.ranking-outer { width:100%; max-width:680px; }
+@media(min-width:1024px) { .ranking-outer { max-width:820px; } }
+
+.podium { display:flex; align-items:flex-end; justify-content:center; gap:clamp(4px,1.5vw,10px); }
+.podium-slot { display:flex; flex-direction:column; align-items:center; width:clamp(90px,28vw,140px); }
+.podium-medal { width:clamp(70px,18vw,120px); height:clamp(70px,18vw,120px); object-fit:contain; }
+.podium-name { color:#fff; font-size:clamp(10px,2.5vw,14px); font-family:'Poppins',sans-serif; font-weight:500; text-align:center; line-height:1.2; padding:2px 4px; word-break:break-word; min-height:2.2em; }
+.podium-score { color:#fff; font-size:clamp(10px,2.5vw,13px); font-family:'Poppins',sans-serif; font-weight:700; text-align:center; margin-bottom:4px; }
+.podium-base { width:100%; border-top-left-radius:8px; border-top-right-radius:8px; }
+
+.rank-list { background:#fff; border-bottom-left-radius:12px; border-bottom-right-radius:12px; overflow:hidden; }
+.rank-item { display:flex; align-items:center; padding:10px 16px; border-bottom:1px solid rgba(2,111,24,.07); }
+.rank-pos { color:#FF0000; font-size:18px; font-weight:700; min-width:40px; font-family:'Poppins',sans-serif; }
+.rank-name { color:#026F18; font-size:14px; font-weight:500; flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-family:'Poppins',sans-serif; padding-right:8px; }
+.rank-score { color:#026F18; font-size:14px; font-weight:700; white-space:nowrap; font-family:'Poppins',sans-serif; }
+.rank-empty { padding:18px; text-align:center; color:rgba(2,111,24,.3); font-size:13px; font-family:'Poppins',sans-serif; }
+
+
+/* ============================================================
+   PARABÉNS
+   ============================================================ */
+@keyframes trophyIn { from{transform:scale(0) rotate(-15deg);opacity:0} 60%{transform:scale(1.1) rotate(3deg)} to{transform:scale(1) rotate(0);opacity:1} }
+.trophy-img { width:clamp(130px,42vw,260px); height:clamp(130px,42vw,260px); object-fit:contain; animation:trophyIn .7s ease-out; margin:4px 0; }
+.stats-list { width:100%; max-width:400px; display:flex; flex-direction:column; gap:10px; margin:12px 0; }
+.stat-box { background:#fff; border-radius:8px; padding:10px 16px; display:flex; align-items:center; gap:8px; }
+.stat-label { color:#026F18; font-size:clamp(15px,4vw,22px); font-weight:700; min-width:100px; font-family:'Poppins',sans-serif; }
+.stat-value { color:#026F18; font-size:clamp(14px,3.5vw,20px); font-weight:500; font-family:'Poppins',sans-serif; }
+@media(min-width:768px)  { .stats-list { max-width:520px; } }
+@media(min-width:1024px) { .stats-list { max-width:620px; } }
+
+
+/* ============================================================
+   AGUARDE
+   ============================================================ */
+.wait-title { color:#fff; font-size:clamp(22px,6vw,32px); font-weight:600; margin-bottom:16px; }
+.wait-subtitle { color:#fff; font-size:clamp(16px,4.5vw,22px); font-weight:400; line-height:1.5; opacity:.9; margin-bottom:24px; }
+.dot { width:10px; height:10px; background:#fff; border-radius:50%; display:inline-block; margin:0 5px; animation:dotPulse 1.4s infinite ease-in-out; }
+.dot:nth-child(2) { animation-delay:.2s; }
+.dot:nth-child(3) { animation-delay:.4s; }
+@keyframes dotPulse { 0%,80%,100%{opacity:.3;transform:scale(.8)} 40%{opacity:1;transform:scale(1.2)} }
+
+
+/* ============================================================
+   MODO TV
+   ============================================================ */
+.tv-code { color:rgba(255,255,255,.85); font-size:15px; font-family:'Poppins',sans-serif; text-align:center; margin-bottom:12px; }
+.tv-players-card { background:#fff; border-radius:12px; width:100%; max-width:520px; overflow:hidden; margin-bottom:16px; flex-shrink:0; }
+@media(min-width:768px)  { .tv-players-card { max-width:600px; } }
+@media(min-width:1024px) { .tv-players-card { max-width:700px; } }
+.tv-players-header { padding:12px 16px; border-bottom:2px solid #f0f0f0; color:#026F18; font-size:16px; font-weight:600; font-family:'Poppins',sans-serif; }
+#playerList { overflow-y:auto; max-height:min(420px,50vh); padding:8px 10px; }
+.tv-hint { color:rgba(255,255,255,.65); font-size:13px; font-family:'Poppins',sans-serif; text-align:center; margin-bottom:8px; }
+#playerDoneBox { text-align:center; margin-bottom:12px; }
+#playerDoneScore { color:#FFD700; font-size:clamp(24px,6vw,34px); font-family:'Poppins',sans-serif; font-weight:700; }
