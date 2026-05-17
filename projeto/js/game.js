@@ -127,6 +127,43 @@ async function getGeralRanking() {
 }
 
 // ============================================
+// RANKING TRÂNSITO — nó separado no Firebase
+// ============================================
+async function addToTransitoRanking(name, score, hits, errors, timeUsed) {
+  if (!firebaseReady) { console.error('Firebase não conectado!'); return; }
+  var entry = {
+    name: name,
+    score: score,
+    hits: hits || 0,
+    errors: errors || 0,
+    timeUsed: timeUsed || 0,
+    date: new Date().toLocaleDateString('pt-BR'),
+    ts: Date.now(),
+    tipoJogo: 'transito'
+  };
+  try {
+    await db.ref('rankingTransito').push(entry);
+    console.log('✅ Ranking trânsito salvo:', name, score);
+  } catch(e) {
+    console.error('❌ Erro ao salvar ranking trânsito:', e);
+  }
+}
+
+async function getTransitoRanking() {
+  if (!firebaseReady) { console.error('Firebase não conectado!'); return []; }
+  try {
+    var snap = await db.ref('rankingTransito').orderByChild('score').limitToLast(500).once('value');
+    var arr = [];
+    snap.forEach(function(c) { arr.push(c.val()); });
+    arr.sort(function(a, b) { return b.score - a.score; });
+    return arr;
+  } catch(e) {
+    console.error('❌ Erro ao buscar ranking trânsito:', e);
+    return [];
+  }
+}
+
+// ============================================
 // RANKING DA SALA — SOMENTE Firebase
 // ============================================
 async function addToSalaRanking(code, name, score) {
@@ -163,6 +200,7 @@ async function limparTudo() {
   if (firebaseReady) {
     try {
       await db.ref('rankingGeral').remove();
+      await db.ref('rankingTransito').remove();
       await db.ref('rankingSala').remove();
       await db.ref('salas').remove();
       console.log('✅ Firebase limpo!');
